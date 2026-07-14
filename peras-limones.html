@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Peras & Limones 2025-2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F2F1EC;--sf:#fff;--s2:#ECEAE1;--bd:#D6D3C8;--bd2:#C0BDB0;
+  --tx:#1A1916;--t2:#5A5850;--t3:#94928A;
+  --pera:#4A148C;--perabg:#EDE7F6;
+  --limon:#F9A825;--limonbg:#FFFDE7;
+  --pen:#BF360C;--penbg:#FBE9E7;
+  --arr:#1B5E20;--arrbg:#E8F5E9;
+  --dona:#0D47A1;--donabg:#E3EDF9;
+  --frutea:#1B5E20;--fruteabg:#E3F2E4;
+  --nh:50px;--eh:42px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:13px}
+.nav{height:var(--nh);background:#1A1916;display:flex;align-items:center;padding:0 1.25rem;gap:10px;position:sticky;top:0;z-index:300}
+.nav-brand{color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+.nav-right{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0}
+.nav-sem{font-size:10px;color:rgba(255,255,255,.35);font-family:monospace}
+.btn-load{font-size:11px;font-family:monospace;padding:5px 12px;border-radius:4px;border:1px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.65);cursor:pointer;display:flex;align-items:center;gap:5px}
+.btn-load:hover{background:rgba(255,255,255,.08)}
+.btn-load.ok{border-color:#4CAF50;color:#4CAF50}
+.btn-csv{font-size:11px;font-family:monospace;padding:5px 10px;border-radius:4px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(255,255,255,.45);cursor:pointer}
+#fi{display:none}
+
+/* ESP TABS */
+.esp-bar{display:flex;gap:5px;padding:.75rem 1.25rem .5rem;background:var(--sf);border-bottom:1px solid var(--bd);position:sticky;top:var(--nh);z-index:200}
+.ebtn{font-size:11px;font-weight:700;font-family:monospace;padding:5px 18px;border-radius:3px;border:2px solid var(--bd2);background:transparent;color:var(--t3);cursor:pointer}
+.ebtn:hover{background:var(--s2)}
+.ebtn.on-all{background:#1A1916;color:#fff;border-color:#1A1916}
+.ebtn.on-pera{background:var(--pera);color:#fff;border-color:var(--pera)}
+.ebtn.on-limon{background:var(--limon);color:#fff;border-color:var(--limon)}
+
+/* STATUS */
+.sbar{background:var(--sf);border-bottom:1px solid var(--bd);padding:.3rem 1.25rem;font-size:10px;font-family:monospace;color:var(--t3);display:none;justify-content:space-between}
+.sbar.on{display:flex}
+.sdot{width:6px;height:6px;border-radius:50%;background:#ccc;display:inline-block;margin-right:5px;vertical-align:middle}
+.sdot.ok{background:#4CAF50}
+
+/* DROP */
+.drop-ov{position:fixed;inset:0;background:rgba(26,25,22,.9);z-index:500;display:none;align-items:center;justify-content:center}
+.drop-ov.on{display:flex}
+.drop-box{border:2px dashed rgba(255,255,255,.4);border-radius:12px;padding:3rem 5rem;text-align:center;color:#fff}
+.drop-box h2{font-size:18px;font-weight:600;margin-top:.75rem}
+
+/* PAGE */
+.page{padding:.9rem 1.25rem;max-width:1200px;margin:0 auto}
+
+/* MÉTRICAS */
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:.9rem}
+.mc{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.65rem .9rem;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.mc.cp::before{background:var(--pen)}
+.mc.ca::before{background:var(--arr)}
+.mc.cpe::before{background:var(--pera)}
+.mc.cli::before{background:var(--limon)}
+.ml{font-size:9px;font-family:monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.mv{font-size:20px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.ms{font-size:10px;color:var(--t3);margin-top:2px}
+
+/* FILTROS */
+.fbar{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.7rem 1rem;margin-bottom:.9rem;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:9px;font-family:monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+select,input[type=text]{font-family:inherit;font-size:11px;padding:5px 8px;border-radius:4px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx);min-width:110px;cursor:pointer}
+select:focus,input:focus{outline:none;border-color:var(--pera)}
+input[type=text]{min-width:160px}
+.btn-cl{font-size:10px;font-family:monospace;padding:5px 11px;border-radius:4px;border:1px solid var(--bd2);background:var(--s2);color:var(--t2);cursor:pointer;white-space:nowrap;align-self:flex-end}
+
+/* GRÁFICOS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.gc{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.85rem 1rem}
+.gct{font-size:9px;font-family:monospace;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.65rem}
+.leg{display:flex;flex-wrap:wrap;gap:5px;margin-top:.5rem}
+.li{display:flex;align-items:center;gap:4px;font-size:9px;font-family:monospace;color:var(--t2)}
+.lsq{width:7px;height:7px;border-radius:1px;flex-shrink:0}
+
+/* TABLA */
+.tw{background:var(--sf);border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead th{background:var(--s2);padding:6px 9px;text-align:left;font-size:9px;font-weight:600;font-family:monospace;color:var(--t3);border-bottom:1px solid var(--bd);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;user-select:none}
+thead th:hover{color:var(--tx)}
+.si{font-size:8px;margin-left:2px;opacity:.25}
+thead th.srt .si{opacity:1}
+tbody tr{border-bottom:1px solid var(--s2)}
+tbody tr:hover{background:#F8F7F3}
+tbody td{padding:7px 9px;vertical-align:middle;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+td.r{text-align:right;font-family:monospace;font-weight:600;max-width:none}
+tfoot td{padding:6px 9px;font-size:9px;font-weight:600;font-family:monospace;background:var(--s2);border-top:1px solid var(--bd)}
+.tempty{text-align:center;padding:2.5rem;color:var(--t3);font-family:monospace;font-size:11px}
+
+/* BADGES */
+.b{display:inline-block;padding:2px 6px;border-radius:2px;font-size:9px;font-weight:600;font-family:monospace;white-space:nowrap}
+.b-pera{background:var(--perabg);color:var(--pera)}
+.b-limon{background:var(--limonbg);color:#7B5800}
+.b-pen{background:var(--penbg);color:var(--pen)}
+.b-hoy{background:var(--donabg);color:var(--dona)}
+.b-arr{background:var(--arrbg);color:var(--arr)}
+.b-sin{background:var(--s2);color:var(--t3)}
+.b-d{background:var(--donabg);color:var(--dona)}
+.b-f{background:var(--fruteabg);color:var(--frutea)}
+
+@media(max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="drop-ov" id="dov">
+  <div class="drop-box">
+    <div style="font-size:48px">📂</div>
+    <h2>Suelta el Excel aquí</h2>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-brand">🍐🍋 Peras & Limones 2025–2026</div>
+  <div class="nav-right">
+    <span class="nav-sem" id="nsem">SEM 29 · 14-07-2026</span>
+    <button class="btn-load" id="btnxl" onclick="document.getElementById('fi').click()">
+      <span id="xl-ico">📂</span><span id="xl-txt">Actualizar Excel</span>
+    </button>
+    <button class="btn-csv" onclick="doCSV()">↓ CSV</button>
+    <input type="file" id="fi" accept=".xlsx,.xls" onchange="onFile(this)">
+  </div>
+</nav>
+
+<div class="esp-bar">
+  <button class="ebtn on-all" id="eb-all" onclick="setEsp('TODAS')">TODAS</button>
+  <button class="ebtn" id="eb-pera" onclick="setEsp('PERAS')">🍐 PERAS</button>
+  <button class="ebtn" id="eb-limon" onclick="setEsp('LIMONES')">🍋 LIMONES</button>
+</div>
+
+<div class="sbar" id="sbar">
+  <div><span class="sdot" id="sdot"></span><span id="stxt"></span></div>
+  <div id="sstats"></div>
+</div>
+
+<div class="page">
+  <div class="metrics" id="metrics"></div>
+  <div class="fbar">
+    <div class="fg"><label>Semana zarpe</label><select id="f-sem"><option value="">Todas</option></select></div>
+    <div class="fg"><label>Nave</label><select id="f-nave"><option value="">Todas</option></select></div>
+    <div class="fg"><label>País destino</label><select id="f-pais"><option value="">Todos</option></select></div>
+    <div class="fg"><label>Cliente final</label><select id="f-cli"><option value="">Todos</option></select></div>
+    <div class="fg"><label>Estado arribo</label>
+      <select id="f-est">
+        <option value="">Todos</option>
+        <option value="Pendiente">🟡 Pendiente</option>
+        <option value="Arriba hoy">🔵 Arriba hoy</option>
+        <option value="Arribado">🟢 Arribado</option>
+        <option value="Sin ETA">— Sin ETA</option>
+      </select>
+    </div>
+    <div class="fg"><label>Buscar contenedor / nave</label><input type="text" id="f-q" placeholder="Buscar..."></div>
+    <button class="btn-cl" onclick="limpiar()">✕ Limpiar</button>
+  </div>
+  <div class="g2">
+    <div class="gc"><div class="gct">Cajas por cliente</div><div style="height:190px;position:relative"><canvas id="gc1"></canvas></div></div>
+    <div class="gc"><div class="gct">Cajas por país</div><div style="height:155px;position:relative"><canvas id="gc2"></canvas></div><div class="leg" id="gc2l"></div></div>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th data-c="EMPRESA">Empresa<span class="si">↕</span></th>
+        <th data-c="SEMANA_ZARPE">Sem.<span class="si">↕</span></th>
+        <th data-c="ETA_S">ETA<span class="si">↕</span></th>
+        <th data-c="CLIENTE_FINAL">Cliente<span class="si">↕</span></th>
+        <th data-c="NOMBRE_NAVE">Nave<span class="si">↕</span></th>
+        <th data-c="CONTENEDOR">Contenedor<span class="si">↕</span></th>
+        <th data-c="NOM_ESP">Especie<span class="si">↕</span></th>
+        <th data-c="NOM_PUE">Puerto<span class="si">↕</span></th>
+        <th data-c="NOM_PAIS">País<span class="si">↕</span></th>
+        <th data-c="CAJAS" style="text-align:right">Cajas<span class="si">↕</span></th>
+        <th data-c="ESTADO">Estado<span class="si">↕</span></th>
+        <th style="cursor:default">Productores</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+      <tfoot id="tfoot"></tfoot>
+    </table>
+    <div id="tempty" class="tempty" style="display:none">Sin resultados</div>
+  </div>
+</div>
+
+<script>
+var SEED = [{"PLANILLA": "DO2526_031", "TIP_TRA": "MAR", "EMPRESA": "DONAFRUT", "NOM_ESP": "PERAS", "ETA_S": "05-04-2026", "SEMANA_ZARPE": 12, "CONTENEDOR": "HLBU967886-3", "NOMBRE_NAVE": "ISTANBUL EXPRESS", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "RAQUEL ENEDINA PEÑA ARROS | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "DO2526_048", "TIP_TRA": "MAR", "EMPRESA": "DONAFRUT", "NOM_ESP": "PERAS", "ETA_S": "10-07-2026", "SEMANA_ZARPE": 26, "CONTENEDOR": "MNBU400663-3", "NOMBRE_NAVE": "MAERSK BAYETE", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO", "ESTADO": "Arribado"}, {"PLANILLA": "DO2526_049", "TIP_TRA": "MAR", "EMPRESA": "DONAFRUT", "NOM_ESP": "PERAS", "ETA_S": "25-07-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "HLBU957044-1", "NOMBRE_NAVE": "COSCO SHIPPING SEINE", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 320, "PRODUCTORES": "JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_207", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "27-02-2026", "SEMANA_ZARPE": 7, "CONTENEDOR": "MNBU376599-6", "NOMBRE_NAVE": "MAERSK BATUR", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_208", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "27-02-2026", "SEMANA_ZARPE": 7, "CONTENEDOR": "MNBU340608-6", "NOMBRE_NAVE": "MAERSK BATUR", "CLIENTE_FINAL": "EXIFRUIT", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_209", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "27-02-2026", "SEMANA_ZARPE": 7, "CONTENEDOR": "MMAU105234-3", "NOMBRE_NAVE": "MAERSK BATUR", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_217", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "09-03-2026", "SEMANA_ZARPE": 8, "CONTENEDOR": "MNBU036150-0", "NOMBRE_NAVE": "MAERSK JAIPUR", "CLIENTE_FINAL": "NUEVO AMANECER", "NOM_PAIS": "VENEZUELA", "NOM_PUE": "VALPARAISO", "NOM_DES": "LA GUAIRA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_221", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "06-03-2026", "SEMANA_ZARPE": 8, "CONTENEDOR": "MNBU353970-4", "NOMBRE_NAVE": "MAERSK JAIPUR", "CLIENTE_FINAL": "EXIFRUIT", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_222", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "06-03-2026", "SEMANA_ZARPE": 8, "CONTENEDOR": "MNBU428940-4", "NOMBRE_NAVE": "MAERSK JAIPUR", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_225", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "10-03-2026", "SEMANA_ZARPE": 8, "CONTENEDOR": "FBIU512511-7", "NOMBRE_NAVE": "MSC ALANYA", "CLIENTE_FINAL": "EXIFRUIT", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_229", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "13-03-2026", "SEMANA_ZARPE": 9, "CONTENEDOR": "MNBU422458-0", "NOMBRE_NAVE": "MAERSK BATAM", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_230", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "13-03-2026", "SEMANA_ZARPE": 9, "CONTENEDOR": "MNBU417130-3", "NOMBRE_NAVE": "MAERSK BATAM", "CLIENTE_FINAL": "C&M", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_239", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "21-03-2026", "SEMANA_ZARPE": 10, "CONTENEDOR": "FBIU506328-9", "NOMBRE_NAVE": "VALPARAISO EXPRESS", "CLIENTE_FINAL": "BAQUEDANO", "NOM_PAIS": "REPUBLICA DOMINICANA", "NOM_PUE": "VALPARAISO", "NOM_DES": "CAUCEDO", "DUS_LEGALIZADO": "Si", "CAJAS": 640, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_256", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "20-03-2026", "SEMANA_ZARPE": 11, "CONTENEDOR": "HLBU904067-3", "NOMBRE_NAVE": "CARTAGENA EXPRESS", "CLIENTE_FINAL": "BLESSED", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_331", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "10-04-2026", "SEMANA_ZARPE": 13, "CONTENEDOR": "HLBU901185-0", "NOMBRE_NAVE": "SANTOS EXPRESS", "CLIENTE_FINAL": "FRUITT COL", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "RAQUEL ENEDINA PEÑA ARROS", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_448", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "27-07-2026", "SEMANA_ZARPE": 25, "CONTENEDOR": " CGMU936253-3", "NOMBRE_NAVE": "CMA CGM HELLIUM", "CLIENTE_FINAL": "WONJUN", "NOM_PAIS": "COREA DEL SUR", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUSAN", "DUS_LEGALIZADO": "Si", "CAJAS": 1440, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_449", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "01-07-2026", "SEMANA_ZARPE": 25, "CONTENEDOR": "TRIU822372-3", "NOMBRE_NAVE": "MSC BRUNELLA", "CLIENTE_FINAL": "TRIPLE ALIANZA", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO", "ESTADO": "Arribado"}, {"PLANILLA": "FR2526_450", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "21-07-2026", "SEMANA_ZARPE": 26, "CONTENEDOR": " HLBU967288-6", "NOMBRE_NAVE": "CMA CGM JACQUES JOSEPH", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "Si", "CAJAS": 1600, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_451", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "21-07-2026", "SEMANA_ZARPE": 26, "CONTENEDOR": "HLBU623091-5", "NOMBRE_NAVE": "CMA CGM JACQUES JOSEPH", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "Si", "CAJAS": 1440, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_452", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "14-07-2026", "SEMANA_ZARPE": 26, "CONTENEDOR": "TRLU189641-3", "NOMBRE_NAVE": "MSC SERENA NX626R", "CLIENTE_FINAL": "JULIAN", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "Si", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO", "ESTADO": "Arriba hoy"}, {"PLANILLA": "FR2526_453", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "18-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU925836-7", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "JOSE AMADOR", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_454", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "03-08-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "SEGU955997-7", "NOMBRE_NAVE": "CMA CGM OSMIUM", "CLIENTE_FINAL": "WONJUN", "NOM_PAIS": "COREA DEL SUR", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUSAN", "DUS_LEGALIZADO": "No", "CAJAS": 1440, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_455", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "18-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLXU875786-2", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "EXIFRUIT", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_456", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "23-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU965964-7", "NOMBRE_NAVE": "ONE SAPPHIRE", "CLIENTE_FINAL": "ODA", "NOM_PAIS": "CHINA", "NOM_PUE": "VALPARAISO", "NOM_DES": "NANSHA", "DUS_LEGALIZADO": "Si", "CAJAS": 1600, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_457", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "23-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU984939-6", "NOMBRE_NAVE": "ONE SAPPHIRE", "CLIENTE_FINAL": "OPTION", "NOM_PAIS": "CHINA", "NOM_PUE": "VALPARAISO", "NOM_DES": "NANSHA", "DUS_LEGALIZADO": "Si", "CAJAS": 1600, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_458", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "28-08-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": " HLBU947724-1", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "EXSA", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 1600, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_459", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "28-08-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "CAIU565173-2", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 1440, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_460", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "23-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU957639-4", "NOMBRE_NAVE": "ONE SAPPHIRE", "CLIENTE_FINAL": "ODA", "NOM_PAIS": "CHINA", "NOM_PUE": "VALPARAISO", "NOM_DES": "NANSHA", "DUS_LEGALIZADO": "Si", "CAJAS": 1600, "PRODUCTORES": "AGRICOLA HOJAS VERDES SPA | AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_461", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "17-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "MNBU058103-8", "NOMBRE_NAVE": "MAERSK BATAM", "CLIENTE_FINAL": "TRIPLE ALIANZA", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_462", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "20-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU942132-4", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "TRIPLE ALIANZA", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "CARTAGENA", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_463", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "16-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU971275-7", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "BRAVO", "NOM_PAIS": "REPUBLICA DOMINICANA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "CAUCEDO", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_464", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "28-07-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU620898-0", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 1520, "PRODUCTORES": "AGRICOLA HOJAS VERDES SPA | AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_465", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "28-08-2026", "SEMANA_ZARPE": 27, "CONTENEDOR": "HLBU965041-8", "NOMBRE_NAVE": "CALLAO EXPRESS", "CLIENTE_FINAL": "EXSA", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 1600, "PRODUCTORES": "AGRICOLA HOJAS VERDES SPA | AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_466", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "17-07-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "MNBU417345-6", "NOMBRE_NAVE": "FORT DESAIX", "CLIENTE_FINAL": "ROBINSON FRESH", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_469", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "10-08-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "HLBU920905-9", "NOMBRE_NAVE": "MONTEVIDEO EXPRESS", "CLIENTE_FINAL": "OPTION", "NOM_PAIS": "CHINA", "NOM_PUE": "VALPARAISO", "NOM_DES": "NANSHA", "DUS_LEGALIZADO": "No", "CAJAS": 1600, "PRODUCTORES": "AGRICOLA HOJAS VERDES SPA | AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | SOCIEDAD AGRICOLA SAN ENRIQUE LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_470", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "04-08-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "BMOU921797-7", "NOMBRE_NAVE": "COSCO SHIPPING SEINE", "CLIENTE_FINAL": "EXSA", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 1440, "PRODUCTORES": "PATRICIO GARRIDO AGRICOLA Y GANADERIA E I R L", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_471", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "04-08-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "CAIU552979-2", "NOMBRE_NAVE": "COSCO SHIPPING SEINE", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 1200, "PRODUCTORES": "RODRIGO ALBERTO BERTELSEN DIAZ | SOC.AGRICOLA SAN JORGE LIMITADA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_472", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "04-08-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "HLBU951713-3", "NOMBRE_NAVE": "COSCO SHIPPING SEINE", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 792, "PRODUCTORES": "RODRIGO ALBERTO BERTELSEN DIAZ | SOC.AGRICOLA SAN JORGE LIMITADA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_473", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "25-07-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "CAAU406975-0", "NOMBRE_NAVE": "COSCO SHIPPING SEINE", "CLIENTE_FINAL": "JULIAN", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 896, "PRODUCTORES": "BERNARDINA PEÑA ARROS | JUAN ANTONIO GONZALEZ CORNEJO | LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_474", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "24-07-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "MNBU010690-6", "NOMBRE_NAVE": "FORT DESAIX", "CLIENTE_FINAL": "TRIPLE ALIANZA", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 1184, "PRODUCTORES": "LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_475", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "17-07-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "MNBU429192-6", "NOMBRE_NAVE": "FORT DESAIX", "CLIENTE_FINAL": "TRIPLE ALIANZA", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 1280, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_476", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "16-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "CGMU564664-0", "NOMBRE_NAVE": "CMA CGM CAPE COD", "CLIENTE_FINAL": "ANDY", "NOM_PAIS": "COREA DEL SUR", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUSAN", "DUS_LEGALIZADO": "No", "CAJAS": 144, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_477", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "16-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "CGMU557173-0", "NOMBRE_NAVE": "CMA CGM CAPE COD", "CLIENTE_FINAL": "WONJUN", "NOM_PAIS": "COREA DEL SUR", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUSAN", "DUS_LEGALIZADO": "No", "CAJAS": 936, "PRODUCTORES": "AGRÍCOLA AGRITUVAL LTDA | AGRÍCOLA LA ISLA DE PENCAHUE | RODRIGO ALBERTO BERTELSEN DIAZ", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_478", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "19-07-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "HLBU920045-2", "NOMBRE_NAVE": "ONE SPHERE", "CLIENTE_FINAL": "OPTION", "NOM_PAIS": "CHINA", "NOM_PUE": "VALPARAISO", "NOM_DES": "NANSHA", "DUS_LEGALIZADO": "No", "CAJAS": 1360, "PRODUCTORES": "AGRICOLA HOJAS VERDES SPA | AGRÍCOLA AGRITUVAL LTDA | SOC AGRÍCOLA EL CERRILLO SPA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_479", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "19-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "UAEU126884-1", "NOMBRE_NAVE": "ONE SPHERE", "CLIENTE_FINAL": "OPTION", "NOM_PAIS": "CHINA", "NOM_PUE": "VALPARAISO", "NOM_DES": "NANSHA", "DUS_LEGALIZADO": "No", "CAJAS": 1120, "PRODUCTORES": "AGRICOLA HOJAS VERDES SPA | SOC AGRÍCOLA EL CERRILLO SPA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_480", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "30-07-2026", "SEMANA_ZARPE": 28, "CONTENEDOR": "TRIU821794-7", "NOMBRE_NAVE": "MSC ALANYA", "CLIENTE_FINAL": "C&M", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "VALPARAISO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 832, "PRODUCTORES": "ROSA ADRIANA PARRAGUEZ PIMIENTA | SOCIEDAD AGRICOLA SAN ALBERTO LTDA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_481", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "30-07-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "HLBU914674-7", "NOMBRE_NAVE": "CMA CGM ESTELLE", "CLIENTE_FINAL": "BRAVO", "NOM_PAIS": "REPUBLICA DOMINICANA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "CAUCEDO", "DUS_LEGALIZADO": "No", "CAJAS": 192, "PRODUCTORES": "LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_482", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "11-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "OERU440132-0", "NOMBRE_NAVE": "CMA  CGM ESTELLE", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 72, "PRODUCTORES": "SOC.AGRICOLA SAN JORGE LIMITADA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_483", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "11-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "OERU439199-9", "NOMBRE_NAVE": "CMA CGM ESTELLE", "CLIENTE_FINAL": "EXSA", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 464, "PRODUCTORES": "SOC.AGRICOLA SAN JORGE LIMITADA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_484", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "PERAS", "ETA_S": "08-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "HLBU907765-1", "NOMBRE_NAVE": "CMA CGM ESTELLE", "CLIENTE_FINAL": "JULIAN", "NOM_PAIS": "COLOMBIA", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "BUENAVENTURA", "DUS_LEGALIZADO": "No", "CAJAS": 896, "PRODUCTORES": "ALEJANDRINA PEÑA BARROS | LUIS HERNAN GALARCE GALARCE | ROSA ADRIANA PARRAGUEZ PIMIENTA", "ESTADO": "Pendiente"}, {"PLANILLA": "FR2526_486", "TIP_TRA": "MAR", "EMPRESA": "FRUTEA", "NOM_ESP": "LIMONES", "ETA_S": "11-08-2026", "SEMANA_ZARPE": 29, "CONTENEDOR": "HLBU906791-0", "NOMBRE_NAVE": "CMA CGM ESTELLE", "CLIENTE_FINAL": "OFD", "NOM_PAIS": "NETHERLANDS", "NOM_PUE": "SAN ANTONIO", "NOM_DES": "ROTTERDAM", "DUS_LEGALIZADO": "No", "CAJAS": 400, "PRODUCTORES": "RODRIGO ALBERTO BERTELSEN DIAZ | SOC.AGRICOLA SAN JORGE LIMITADA", "ESTADO": "Pendiente"}];
+
+var HOY=new Date();HOY.setHours(0,0,0,0);
+var SH=29;
+var ALL=[],aEsp='TODAS';
+var srt={col:'ETA_S',asc:true};
+var CH={};
+var PAL=['#7B1FA2','#F9A825','#0D47A1','#1B5E20','#BF360C','#006064','#4E342E','#37474F','#558B2F','#AD1457'];
+
+function getEmpresa(p){p=String(p||'').trim();if(p.startsWith('DO'))return'DONAFRUT';if(p.endsWith('E'))return'EXSER';return'FRUTEA';}
+
+function parseETA(v){
+  if(!v)return null;
+  if(v instanceof Date&&!isNaN(v)){var d=new Date(v);d.setHours(0,0,0,0);return d;}
+  var s=String(v).trim();if(!s||s==='-'||s==='NaT')return null;
+  var m;
+  if((m=s.match(/^(\d{2})-(\d{2})-(\d{4})$/))){var d=new Date(+m[3],+m[2]-1,+m[1]);d.setHours(0,0,0,0);return d;}
+  if((m=s.match(/^(\d{4})-(\d{2})-(\d{2})/))){var d=new Date(+m[1],+m[2]-1,+m[3]);d.setHours(0,0,0,0);return d;}
+  return null;
+}
+function fmtETA(v){
+  if(v instanceof Date&&!isNaN(v))return String(v.getDate()).padStart(2,'0')+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+v.getFullYear();
+  var s=String(v||'').trim();
+  if(/^\d{2}-\d{2}-\d{4}$/.test(s))return s;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){var p=s.slice(0,10).split('-');return p[2]+'-'+p[1]+'-'+p[0];}
+  var d=parseETA(v);return d?String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear():'';
+}
+function calcEstado(eta){
+  var d=parseETA(eta);if(!d)return'Sin ETA';
+  if(d>HOY)return'Pendiente';if(d.getTime()===HOY.getTime())return'Arriba hoy';return'Arribado';
+}
+
+function fromSeed(seed){
+  ALL=seed.map(function(r){
+    var eta=r.ETA_S||'';
+    return{PLANILLA:r.PLANILLA,EMPRESA:r.EMPRESA||getEmpresa(r.PLANILLA),TIP_TRA:r.TIP_TRA||'MAR',
+      CONTENEDOR:r.CONTENEDOR,CLIENTE_FINAL:r.CLIENTE_FINAL,NOMBRE_NAVE:String(r.NOMBRE_NAVE||'').trim(),
+      NOM_ESP:r.NOM_ESP,ETA_S:eta,SEMANA_ZARPE:+r.SEMANA_ZARPE||0,
+      NOM_PUE:r.NOM_PUE,NOM_DES:r.NOM_DES,NOM_PAIS:r.NOM_PAIS,
+      DUS_LEGALIZADO:r.DUS_LEGALIZADO||'',CAJAS:+r.CAJAS||0,
+      ESTADO:calcEstado(eta),PRODUCTORES:r.PRODUCTORES||''};
+  });
+}
+
+function onFile(inp){var f=inp.files[0];if(f)leerXL(f);inp.value='';}
+function leerXL(file){
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      var sn=wb.SheetNames.find(function(s){return s.toUpperCase().includes('ODBC_GESTION')||s.toUpperCase().includes('GESTION');});
+      if(!sn){for(var i=0;i<wb.SheetNames.length;i++){var h=(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{header:1,range:0})[0]||[]).map(function(x){return String(x||'').toUpperCase();});if(h.includes('PLANILLA')){sn=wb.SheetNames[i];break;}}}
+      if(!sn&&wb.SheetNames.length===1)sn=wb.SheetNames[0];
+      if(!sn){alert('No se encontró la hoja de datos');return;}
+      var rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{raw:false,dateNF:'DD-MM-YYYY'});
+      rows=rows.filter(function(r){var t=String(r.TIP_TRA||'').trim();return t==='MAR'||t==='AER';});
+      // Solo PERAS y LIMONES
+      rows=rows.filter(function(r){var e=String(r.NOM_ESP||'').toUpperCase();return e==='PERAS'||e==='LIMONES';});
+      var map={};
+      rows.forEach(function(r){
+        var pl=String(r.PLANILLA||'').trim(),ct=String(r.CONTENEDOR||'').trim(),esp=String(r.NOM_ESP||'').trim().toUpperCase();
+        if(!pl||!ct||!esp)return;
+        var k=pl+'|'+ct+'|'+esp;
+        if(!map[k]){
+          var etaStr=fmtETA(r.ETA)||'';
+          map[k]={PLANILLA:pl,EMPRESA:getEmpresa(pl),TIP_TRA:String(r.TIP_TRA||'MAR').trim(),
+            CONTENEDOR:ct,CLIENTE_FINAL:String(r.CLIENTE_FINAL||'').trim(),
+            NOMBRE_NAVE:String(r.NOMBRE_NAVE||'').trim(),NOM_ESP:esp,
+            ETA_S:etaStr,SEMANA_ZARPE:parseInt(r.SEMANA_ZARPE)||0,
+            NOM_PUE:String(r.NOM_PUE||'').trim(),NOM_DES:String(r.NOM_DES||'').trim(),
+            NOM_PAIS:String(r.NOM_PAIS||'').trim(),DUS_LEGALIZADO:String(r.DUS_LEGALIZADO||'').trim(),
+            CAJAS:0,_p:new Set()};
+        }
+        map[k].CAJAS+=parseFloat(r.CAJAS)||0;
+        var pro=String(r.NOM_PRO||'').trim();if(pro&&pro!=='nan')map[k]._p.add(pro);
+      });
+      ALL=Object.values(map).map(function(r){
+        return{PLANILLA:r.PLANILLA,EMPRESA:r.EMPRESA,TIP_TRA:r.TIP_TRA,CONTENEDOR:r.CONTENEDOR,
+          CLIENTE_FINAL:r.CLIENTE_FINAL,NOMBRE_NAVE:r.NOMBRE_NAVE,NOM_ESP:r.NOM_ESP,
+          ETA_S:r.ETA_S,SEMANA_ZARPE:r.SEMANA_ZARPE,NOM_PUE:r.NOM_PUE,NOM_DES:r.NOM_DES,
+          NOM_PAIS:r.NOM_PAIS,DUS_LEGALIZADO:r.DUS_LEGALIZADO,CAJAS:Math.round(r.CAJAS),
+          ESTADO:calcEstado(r.ETA_S),PRODUCTORES:[...r._p].sort().join(' | ')};
+      });
+      activar(file.name);
+    }catch(err){alert('Error: '+err.message);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function activar(fname){
+  var sb=document.getElementById('sbar');sb.className='sbar on';
+  document.getElementById('sdot').className='sdot ok';
+  document.getElementById('stxt').textContent='Actualizado '+new Date().toLocaleString('es-CL')+(fname?' · '+fname:'');
+  var tot=ALL.reduce(function(a,b){return a+b.CAJAS;},0);
+  document.getElementById('sstats').textContent=ALL.length+' registros · '+tot.toLocaleString('es-CL')+' cajas';
+  var b=document.getElementById('btnxl');b.className='btn-load ok';
+  document.getElementById('xl-ico').textContent='✓';document.getElementById('xl-txt').textContent='Actualizar';
+  populateSels();render();
+}
+
+document.addEventListener('dragover',function(e){e.preventDefault();document.getElementById('dov').classList.add('on');});
+document.addEventListener('dragleave',function(e){if(!e.relatedTarget)document.getElementById('dov').classList.remove('on');});
+document.addEventListener('drop',function(e){
+  e.preventDefault();document.getElementById('dov').classList.remove('on');
+  var f=e.dataTransfer.files[0];if(f&&(f.name.endsWith('.xlsx')||f.name.endsWith('.xls')))leerXL(f);
+});
+
+function setEsp(e){
+  aEsp=e;
+  ['all','pera','limon'].forEach(function(k){document.getElementById('eb-'+k).className='ebtn';});
+  if(e==='TODAS')document.getElementById('eb-all').className='ebtn on-all';
+  else if(e==='PERAS')document.getElementById('eb-pera').className='ebtn on-pera';
+  else document.getElementById('eb-limon').className='ebtn on-limon';
+  populateSels();render();
+}
+
+function gv(id){return(document.getElementById(id)||{}).value||'';}
+function uniq(a,k){return[...new Set(a.map(function(r){return r[k];}).filter(Boolean))].sort(function(a,b){return isNaN(a)||isNaN(b)?String(a).localeCompare(String(b)):+a-+b;});}
+function grpBy(a,k){var m={};a.forEach(function(r){m[r[k]]=(m[r[k]]||0)+(+r.CAJAS||0);});return m;}
+
+function baseData(){return aEsp==='TODAS'?ALL:ALL.filter(function(r){return r.NOM_ESP===aEsp;});}
+
+function fillSel(id,arr,ph){
+  var el=document.getElementById(id);if(!el)return;
+  var cur=el.value;el.innerHTML='<option value="">'+ph+'</option>';
+  arr.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;if(v==cur)o.selected=true;el.appendChild(o);});
+}
+function populateSels(){
+  var d=baseData();
+  fillSel('f-sem',uniq(d,'SEMANA_ZARPE'),'Todas');
+  fillSel('f-nave',uniq(d,'NOMBRE_NAVE'),'Todas');
+  fillSel('f-pais',uniq(d,'NOM_PAIS'),'Todos');
+  fillSel('f-cli',uniq(d,'CLIENTE_FINAL'),'Todos');
+}
+function limpiar(){
+  ['f-sem','f-nave','f-pais','f-cli','f-est'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('f-q').value='';
+  setEsp('TODAS');
+}
+
+function filtered(){
+  var d=baseData();
+  var sem=gv('f-sem'),nave=gv('f-nave'),pais=gv('f-pais'),cli=gv('f-cli'),est=gv('f-est');
+  var q=(gv('f-q')||'').trim().toUpperCase();
+  return d.filter(function(r){
+    return(!sem||r.SEMANA_ZARPE==sem)&&(!nave||r.NOMBRE_NAVE===nave)&&
+      (!pais||r.NOM_PAIS===pais)&&(!cli||r.CLIENTE_FINAL===cli)&&(!est||r.ESTADO===est)&&
+      (!q||((r.CONTENEDOR||'').toUpperCase().includes(q))||((r.NOMBRE_NAVE||'').toUpperCase().includes(q)));
+  });
+}
+
+function render(){
+  var d=filtered();
+  // Métricas
+  var tot=d.reduce(function(a,b){return a+b.CAJAS;},0);
+  var pend=d.filter(function(r){return r.ESTADO==='Pendiente';});
+  var arri=d.filter(function(r){return r.ESTADO==='Arribado'||r.ESTADO==='Arriba hoy';});
+  var cajPend=pend.reduce(function(a,b){return a+b.CAJAS;},0);
+  var cajArri=arri.reduce(function(a,b){return a+b.CAJAS;},0);
+  var peras=d.filter(function(r){return r.NOM_ESP==='PERAS';});
+  var limones=d.filter(function(r){return r.NOM_ESP==='LIMONES';});
+  document.getElementById('metrics').innerHTML=
+    '<div class="mc"><div class="ml">Total cajas</div><div class="mv">'+tot.toLocaleString('es-CL')+'</div><div class="ms">'+d.length+' contenedores</div></div>'+
+    '<div class="mc cp"><div class="ml">🟡 Pendientes</div><div class="mv" style="color:var(--pen)">'+pend.length+'</div><div class="ms">'+cajPend.toLocaleString('es-CL')+' cajas</div></div>'+
+    '<div class="mc ca"><div class="ml">🟢 Llegados</div><div class="mv" style="color:var(--arr)">'+arri.length+'</div><div class="ms">'+cajArri.toLocaleString('es-CL')+' cajas</div></div>'+
+    '<div class="mc cpe"><div class="ml">🍐 Peras</div><div class="mv" style="color:var(--pera)">'+peras.reduce(function(a,b){return a+b.CAJAS;},0).toLocaleString('es-CL')+'</div><div class="ms">'+peras.length+' cont.</div></div>'+
+    '<div class="mc cli"><div class="ml">🍋 Limones</div><div class="mv" style="color:#7B5800">'+limones.reduce(function(a,b){return a+b.CAJAS;},0).toLocaleString('es-CL')+'</div><div class="ms">'+limones.length+' cont.</div></div>';
+
+  // Charts
+  dc('c1');var ctx1=document.getElementById('gc1');
+  if(ctx1){var byCli=grpBy(d,'CLIENTE_FINAL');var cK=Object.keys(byCli).sort(function(a,b){return byCli[b]-byCli[a];}).slice(0,10);
+    CH['c1']=new Chart(ctx1,{type:'bar',data:{labels:cK,datasets:[{data:cK.map(function(k){return byCli[k];})
+      ,backgroundColor:d.filter(function(r){return r.NOM_ESP==='PERAS';}).length>d.filter(function(r){return r.NOM_ESP==='LIMONES';}).length?'#7B1FA2':'#F9A825',borderRadius:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.raw.toLocaleString('es-CL')+' cajas';}}}},scales:{x:{ticks:{font:{size:9},maxRotation:40},grid:{display:false}},y:{beginAtZero:true,ticks:{font:{size:9},callback:function(v){return v>=1000?(v/1000).toFixed(0)+'k':v;}},grid:{color:'rgba(0,0,0,0.04)'}}}}
+    });
+  }
+  dc('c2');var ctx2=document.getElementById('gc2');
+  if(ctx2){var byPais=grpBy(d,'NOM_PAIS');var pK=Object.keys(byPais).sort(function(a,b){return byPais[b]-byPais[a];}).slice(0,8);
+    CH['c2']=new Chart(ctx2,{type:'doughnut',data:{labels:pK,datasets:[{data:pK.map(function(k){return byPais[k];}),backgroundColor:PAL,borderWidth:1}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+c.raw.toLocaleString('es-CL');}}}}}});
+    var leg=document.getElementById('gc2l');leg.innerHTML='';
+    pK.forEach(function(l,i){var dv=document.createElement('div');dv.className='li';dv.innerHTML='<span class="lsq" style="background:'+PAL[i]+'"></span>'+l+' ('+byPais[l].toLocaleString('es-CL')+')';leg.appendChild(dv);});
+  }
+
+  // Tabla
+  var sorted=d.slice().sort(function(a,b){
+    var va=a[srt.col]!=null?a[srt.col]:'',vb=b[srt.col]!=null?b[srt.col]:'';
+    if(!isNaN(+va)&&!isNaN(+vb))return srt.asc?+va-+vb:+vb-+va;
+    return srt.asc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));
+  });
+  var tb=document.getElementById('tbody'),tf=document.getElementById('tfoot'),te=document.getElementById('tempty');
+  if(!sorted.length){te.style.display='block';tf.innerHTML='';tb.innerHTML='';return;}
+  te.style.display='none';tb.innerHTML='';
+  sorted.forEach(function(r){
+    var tr=document.createElement('tr');
+    var s=+r.SEMANA_ZARPE;
+    var espCls=r.NOM_ESP==='PERAS'?'b-pera':'b-limon';
+    var estMap={'Pendiente':'b-pen','Arriba hoy':'b-hoy','Arribado':'b-arr','Sin ETA':'b-sin'};
+    var empCls=r.EMPRESA==='DONAFRUT'?'b-d':'b-f';
+    var ps=(r.PRODUCTORES||'').split('|').map(function(p){return p.trim();}).filter(Boolean);
+    var ph=ps.length?'<span title="'+ps.join(' | ')+'" style="font-size:9px;color:var(--t2);cursor:help;font-family:monospace">'+ps[0]+(ps.length>1?' <b style=color:var(--pera)>+'+( ps.length-1)+'</b>':'')+'</span>':'—';
+    tr.innerHTML=
+      '<td><span class="b '+empCls+'">'+r.EMPRESA+'</span></td>'+
+      '<td><span class="b" style="background:'+(s===SH?'var(--fruteabg)':'var(--s2)')+';color:'+(s===SH?'var(--frutea)':'var(--t3)')+'">'+s+(s===SH?'★':'')+'</span></td>'+
+      '<td style="font-family:monospace;font-size:10px;color:var(--t2)">'+(r.ETA_S||'—')+'</td>'+
+      '<td style="font-weight:600" title="'+(r.CLIENTE_FINAL||'')+'">'+(r.CLIENTE_FINAL||'—')+'</td>'+
+      '<td title="'+(r.NOMBRE_NAVE||'')+'" style="color:var(--t2)">'+(r.NOMBRE_NAVE||'—')+'</td>'+
+      '<td style="font-family:monospace;font-size:10px">'+(r.CONTENEDOR||'—')+'</td>'+
+      '<td><span class="b '+espCls+'">'+r.NOM_ESP+'</span></td>'+
+      '<td style="font-size:10px;color:var(--t2)">'+(r.NOM_PUE||'—')+'</td>'+
+      '<td style="font-size:10px;color:var(--t2)">'+(r.NOM_PAIS||'—')+'</td>'+
+      '<td class="r">'+r.CAJAS.toLocaleString('es-CL')+'</td>'+
+      '<td><span class="b '+(estMap[r.ESTADO]||'b-sin')+'">'+r.ESTADO+'</span></td>'+
+      '<td>'+ph+'</td>';
+    tb.appendChild(tr);
+  });
+  var tot2=d.reduce(function(a,b){return a+b.CAJAS;},0);
+  tf.innerHTML='<tr><td colspan="9" style="color:var(--t3)">'+d.length+' registros</td><td class=r>'+tot2.toLocaleString('es-CL')+'</td><td colspan=2></td></tr>';
+}
+
+function dc(k){if(CH[k]){try{CH[k].destroy();}catch(e){}delete CH[k];}}
+
+document.querySelectorAll('thead th[data-c]').forEach(function(th){
+  th.addEventListener('click',function(){
+    var col=th.dataset.c;
+    if(srt.col===col)srt.asc=!srt.asc;else{srt.col=col;srt.asc=true;}
+    document.querySelectorAll('thead th[data-c]').forEach(function(t){t.classList.remove('srt');var s=t.querySelector('.si');if(s)s.textContent='↕';});
+    th.classList.add('srt');var si=th.querySelector('.si');if(si)si.textContent=srt.asc?'↑':'↓';
+    render();
+  });
+});
+
+['f-sem','f-nave','f-pais','f-cli','f-est','f-q'].forEach(function(id){
+  var el=document.getElementById(id);if(el)el.addEventListener('input',render);
+});
+
+function doCSV(){
+  var d=filtered();if(!d.length){alert('Sin datos');return;}
+  var h=['Empresa','Especie','ETA','SemZarpe','Contenedor','Nave','Cliente','Pais','Puerto','Cajas','Estado','Productores'];
+  var rows=d.map(function(r){return[r.EMPRESA,r.NOM_ESP,r.ETA_S,r.SEMANA_ZARPE,r.CONTENEDOR,'"'+(r.NOMBRE_NAVE||'')+'"',r.CLIENTE_FINAL,r.NOM_PAIS,r.NOM_PUE,r.CAJAS,r.ESTADO,'"'+(r.PRODUCTORES||'')+'"'];});
+  var csv=[h].concat(rows).map(function(r){return r.join(',');}).join('\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='peras_limones_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+fromSeed(SEED);
+activar('ODBC_DESPACHOS.xlsx');
+</script>
+</body>
+</html>
