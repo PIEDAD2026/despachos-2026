@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Resumen Temporada — Contenedores por Especie 2025-26</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#0a141f;
+  --surface:#0f1f2c;
+  --surface2:#152c3d;
+  --line:#24425666;
+  --text:#e7edf1;
+  --text-dim:#8ea3b3;
+  --text-faint:#5b7186;
+  --cherry:#e0475c;
+  --cherry-dim:#7a2632;
+  --teal:#2fb0a0;
+  --amber:#f0a83e;
+  --olive:#8faa5a;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #12283a 0%, transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, #17263a 0%, transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  padding:32px 40px 64px;
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  font-size:11px;
+  color:var(--cherry);
+  font-weight:600;
+}
+h1{
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:clamp(28px,4vw,44px);
+  margin:6px 0 4px;
+  letter-spacing:-.01em;
+}
+.sub{
+  color:var(--text-dim);
+  font-size:14.5px;
+  max-width:640px;
+  line-height:1.5;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:24px;
+  border-bottom:1px solid var(--line);
+  padding-bottom:28px;
+  margin-bottom:28px;
+}
+.manifest-strip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--text-faint);
+  text-align:right;
+  line-height:1.7;
+}
+.manifest-strip b{ color:var(--text-dim); }
+
+/* ---- KPI cargo tags (signature element) ---- */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:18px;
+  margin-bottom:36px;
+}
+.tag{
+  position:relative;
+  background:linear-gradient(180deg,var(--surface2),var(--surface));
+  border:1px solid var(--line);
+  padding:20px 22px 18px;
+  --notch:14px;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 50%, transparent 98%, #000 100%),
+    radial-gradient(circle var(--notch) at 100% 50%, transparent 98%, #000 100%);
+  -webkit-mask-composite:source-in;
+  mask-composite:intersect;
+}
+.tag::after{
+  content:'';
+  position:absolute;
+  top:0;bottom:0;left:0;right:0;
+  border-top:1px dashed transparent;
+}
+.tag .stamp{
+  position:absolute;
+  top:14px;right:16px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  letter-spacing:.14em;
+  color:var(--text-faint);
+  border:1px solid var(--text-faint);
+  padding:2px 6px;
+  border-radius:2px;
+  transform:rotate(4deg);
+  opacity:.7;
+}
+.tag .num{
+  font-family:'Fraunces',serif;
+  font-weight:700;
+  font-size:34px;
+  color:var(--text);
+  line-height:1;
+  margin-top:6px;
+}
+.tag .num span{ font-size:16px; color:var(--text-dim); font-family:'Inter'; font-weight:500; margin-left:4px;}
+.tag .lbl{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+}
+.tag.accent .num{ color:var(--cherry); }
+
+/* ---- filter chips ---- */
+.filters{
+  display:flex;
+  gap:28px;
+  flex-wrap:wrap;
+  margin-bottom:28px;
+  align-items:center;
+}
+.filter-group{ display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.filter-group .fg-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  margin-right:6px;
+}
+.chip{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:6px 13px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--text-dim);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.chip:hover{ border-color:var(--text-faint); color:var(--text); }
+.chip.active{
+  background:var(--cherry);
+  border-color:var(--cherry);
+  color:#fff;
+}
+.chip.active[data-type="AEREO"]{ background:var(--amber); border-color:var(--amber); color:#221604;}
+.chip.active[data-type="MARITIMO"]{ background:var(--teal); border-color:var(--teal); color:#04211d;}
+.chip.active[data-type="TERRESTRE"]{ background:var(--olive); border-color:var(--olive); color:#1a230d;}
+
+.select{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:6px 30px 6px 13px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0 L5 6 L10 0' fill='none' stroke='%238ea3b3' stroke-width='1.4'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+}
+.select:hover{ border-color:var(--text-faint); }
+.select option{ background:var(--surface); color:var(--text); }
+
+.corner-badge{
+  position:fixed;
+  top:0; right:28px;
+  background:var(--cherry);
+  color:#fff;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  padding:7px 16px 8px;
+  border-radius:0 0 8px 8px;
+  box-shadow:0 4px 14px #00000055;
+  z-index:50;
+}
+
+/* ---- panels/grid ---- */
+.grid{
+  display:grid;
+  grid-template-columns:1.35fr 1fr;
+  gap:22px;
+  margin-bottom:24px;
+}
+@media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:22px 22px 14px;
+}
+.panel h2{
+  font-family:'Fraunces',serif;
+  font-size:17px;
+  font-weight:600;
+  margin:0 0 4px;
+}
+.panel .panel-sub{
+  font-size:12px;
+  color:var(--text-faint);
+  margin-bottom:14px;
+  font-family:'JetBrains Mono',monospace;
+}
+canvas{ max-height:340px; }
+
+/* ---- table ---- */
+.table-panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:22px;
+  overflow:auto;
+}
+table{ width:100%; border-collapse:collapse; font-size:13px; }
+thead th{
+  text-align:left;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-faint);
+  border-bottom:1px solid var(--line);
+  padding:8px 10px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+thead th:hover{ color:var(--text); }
+tbody td{
+  padding:8px 10px;
+  border-bottom:1px solid #ffffff0a;
+  color:var(--text-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12.5px;
+  white-space:nowrap;
+}
+tbody tr:hover{ background:#ffffff08; }
+tbody td.esp{ color:var(--text); font-family:'Inter'; font-weight:500; }
+.badge{
+  display:inline-block;
+  padding:1px 8px;
+  border-radius:20px;
+  font-size:10.5px;
+  font-family:'JetBrains Mono',monospace;
+}
+.badge.MARITIMO{ background:#1a3a35; color:var(--teal);}
+.badge.AEREO{ background:#3a2c14; color:var(--amber);}
+.badge.TERRESTRE{ background:#28331a; color:var(--olive);}
+tfoot td{
+  padding:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-weight:700;
+  color:var(--text);
+  border-top:1px solid var(--line);
+}
+.right{ text-align:right; }
+
+footer{
+  margin-top:30px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  color:var(--text-faint);
+  line-height:1.7;
+  border-top:1px solid var(--line);
+  padding-top:16px;
+}
+</style>
+</head>
+<body>
+
+<div class="corner-badge">Resumen Temporada</div>
+
+<header>
+  <div>
+    <div class="eyebrow">Resumen Temporada 2025 – 26 · Por Especie</div>
+    <h1>Resumen Temporada · Contenedores por Especie</h1>
+    <div class="sub">Contenedores despachados por especie, variedad y empresa, discriminados por vía marítima, aérea y terrestre.</div>
+  </div>
+  <div class="manifest-strip">
+    FRUTEA · EXSER · DONAFRUT<br>
+    <b>440</b> contenedores únicos registrados<br>
+    9 especies · 3 modalidades de transporte
+  </div>
+</header>
+
+<div class="kpis" id="kpiRow"></div>
+
+<div class="filters">
+  <div class="filter-group">
+    <span class="fg-label">Especie</span>
+    <select id="especieSelect" class="select"></select>
+  </div>
+  <div class="filter-group">
+    <span class="fg-label">Empresa</span>
+    <div id="empChips"></div>
+  </div>
+  <div class="filter-group">
+    <span class="fg-label">Transporte</span>
+    <div id="tipoChips"></div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <h2>Contenedores por especie</h2>
+    <div class="panel-sub">Apilado por modalidad de transporte</div>
+    <canvas id="chartEspecie"></canvas>
+  </div>
+  <div class="panel">
+    <h2>Participación por empresa</h2>
+    <div class="panel-sub">Contenedores totales, según filtro activo</div>
+    <canvas id="chartEmpresa"></canvas>
+  </div>
+</div>
+
+<div class="table-panel">
+  <h2 style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0 0 4px;">Detalle por especie y variedad</h2>
+  <div class="panel-sub" style="margin-bottom:14px;">Clic en un encabezado para ordenar · mismo filtro de empresa/transporte de arriba</div>
+  <table id="detailTable">
+    <thead>
+      <tr>
+        <th data-key="NOM_ESP">Especie</th>
+        <th data-key="NOM_VAR">Variedad</th>
+        <th data-key="EMPRESA">Empresa</th>
+        <th data-key="TIPO_TRANSPORTE">Transporte</th>
+        <th data-key="CONTENEDORES" class="right">Contenedores</th>
+        <th data-key="CAJAS" class="right">Cajas</th>
+        <th data-key="KILOS" class="right">Kilos</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">Total (filtro activo)</td>
+        <td class="right" id="fContenedores"></td>
+        <td class="right" id="fCajas"></td>
+        <td class="right" id="fKilos"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<footer>
+  Contenedores contados como CONTENEDOR único por combinación de especie/variedad/empresa/transporte, no como filas de detalle.
+  Empresa derivada de PLANILLA: "DO…" = DONAFRUT · "FR…E" (termina en E) = EXSER · "FR…" (resto) = FRUTEA.
+  Existen contenedores con más de una especie o variedad (cargas mixtas); pueden contarse en más de una fila.
+</footer>
+
+<script>
+const DETALLE = [{"NOM_ESP": "CEREZAS", "NOM_VAR": "AREKO", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 675, "KILOS": 6750.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "BING", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 1298, "KILOS": 3725.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "BING", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 3, "CAJAS": 235, "KILOS": 957.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "BING", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 31, "CAJAS": 28417, "KILOS": 83875.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "FRISCO", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 955, "KILOS": 9550.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "KORDIA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 10, "CAJAS": 9152, "KILOS": 25830.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "LAPINS", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 8, "CAJAS": 36566, "KILOS": 95482.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "LAPINS", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 10, "CAJAS": 2388, "KILOS": 6800.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "LAPINS", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 79, "CAJAS": 302274, "KILOS": 914470.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "NIMBA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 237, "KILOS": 592.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "NIMBA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 14, "CAJAS": 10654, "KILOS": 27675.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "NIMBA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 7, "CAJAS": 2538, "KILOS": 7712.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "PACIFIC RED", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 217, "KILOS": 637.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "PACIFIC RED", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 14, "CAJAS": 5591, "KILOS": 14102.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "PACIFIC RED", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 19, "CAJAS": 6408, "KILOS": 21802.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "RAINIER", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 6, "CAJAS": 4942, "KILOS": 10872.4}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "REGINA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 4416, "KILOS": 11040.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "REGINA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 40, "CAJAS": 72386, "KILOS": 373597.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "ROYAL DAWN", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 11, "CAJAS": 6121, "KILOS": 19582.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SANTINA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 6, "CAJAS": 6630, "KILOS": 19935.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SANTINA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 15, "CAJAS": 8286, "KILOS": 22882.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SANTINA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 57, "CAJAS": 144855, "KILOS": 462225.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SKEENA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 13, "KILOS": 32.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SKEENA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 29, "CAJAS": 24859, "KILOS": 68362.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SWEET ARYANA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 90, "KILOS": 225.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SWEET ARYANA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 20, "CAJAS": 10199, "KILOS": 27222.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SWEET ARYANA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 32, "CAJAS": 66215, "KILOS": 207972.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SWEET HEART", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 165, "KILOS": 570.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SWEET HEART", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 2, "CAJAS": 750, "KILOS": 1875.0}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "SWEET HEART", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 20, "CAJAS": 29978, "KILOS": 120402.5}, {"NOM_ESP": "CEREZAS", "NOM_VAR": "VAN", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 17, "KILOS": 170.0}, {"NOM_ESP": "CIRUELAS", "NOM_VAR": "D'AGEN", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 10, "CAJAS": 23161, "KILOS": 208449.0}, {"NOM_ESP": "CIRUELAS", "NOM_VAR": "LETICIA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 954, "KILOS": 8586.0}, {"NOM_ESP": "KIWIS", "NOM_VAR": "HAYWARD", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 2352, "KILOS": 23520.0}, {"NOM_ESP": "KIWIS", "NOM_VAR": "HAYWARD", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 34, "CAJAS": 81600, "KILOS": 816000.0}, {"NOM_ESP": "KIWIS", "NOM_VAR": "HAYWARD", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "TERRESTRE", "CONTENEDORES": 1, "CAJAS": 4608, "KILOS": 46080.0}, {"NOM_ESP": "MANDARINA", "NOM_VAR": "GOLD", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 3, "CAJAS": 4424, "KILOS": 42028.0}, {"NOM_ESP": "MANDARINA", "NOM_VAR": "MURCOTT", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 4, "CAJAS": 6652, "KILOS": 66520.0}, {"NOM_ESP": "MANZANAS", "NOM_VAR": "GALA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 343, "KILOS": 6860.0}, {"NOM_ESP": "MANZANAS", "NOM_VAR": "GALA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 3, "CAJAS": 1677, "KILOS": 32952.0}, {"NOM_ESP": "MANZANAS", "NOM_VAR": "GALA BROOFFIELD", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 686, "KILOS": 13916.0}, {"NOM_ESP": "MANZANAS", "NOM_VAR": "GRANNY SMITH", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 6, "CAJAS": 5145, "KILOS": 101381.0}, {"NOM_ESP": "MANZANAS", "NOM_VAR": "GRANNY SMITH", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 8, "CAJAS": 7840, "KILOS": 152134.0}, {"NOM_ESP": "MANZANAS", "NOM_VAR": "ROYAL GALA", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 3, "CAJAS": 1263, "KILOS": 25064.0}, {"NOM_ESP": "NARANJAS", "NOM_VAR": "CARA CARA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 1040, "KILOS": 15600.0}, {"NOM_ESP": "NARANJAS", "NOM_VAR": "NAVEL", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 3, "CAJAS": 1504, "KILOS": 22560.0}, {"NOM_ESP": "NARANJAS", "NOM_VAR": "VALENCIA", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 5, "CAJAS": 2564, "KILOS": 38460.0}, {"NOM_ESP": "PERAS", "NOM_VAR": "PACKHAMS TRIUMPH", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 1280, "KILOS": 23040.0}, {"NOM_ESP": "PERAS", "NOM_VAR": "PACKHAMS TRIUMPH", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 12, "CAJAS": 14720, "KILOS": 264960.0}, {"NOM_ESP": "POMELO", "NOM_VAR": "RUBY", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 280, "KILOS": 4200.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "ARRA 15", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 4, "CAJAS": 3826, "KILOS": 31373.2}, {"NOM_ESP": "UVAS", "NOM_VAR": "ARRA 15", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 4, "CAJAS": 8084, "KILOS": 66288.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "ARRA 30", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 1700, "KILOS": 13940.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "AUTUMN KING", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 1500, "KILOS": 12300.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "AUTUMNCRISP®", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 1800, "KILOS": 14760.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "CRIMSON SEEDLESS", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 306, "KILOS": 2509.2}, {"NOM_ESP": "UVAS", "NOM_VAR": "CRIMSON SEEDLESS", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 5, "CAJAS": 6290, "KILOS": 45262.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "CRIMSON SEEDLESS", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 14, "CAJAS": 29085, "KILOS": 203589.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "GREEN SEEDLESS", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 4, "CAJAS": 6674, "KILOS": 54726.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "IFG TEN - (Sweet Globe™)", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 31, "CAJAS": 49472, "KILOS": 401850.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "IFG TEN - (Sweet Globe™)", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 6, "CAJAS": 5928, "KILOS": 48221.7}, {"NOM_ESP": "UVAS", "NOM_VAR": "RED GLOBE", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 8, "CAJAS": 17044, "KILOS": 139760.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "RED GLOBE", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 4, "CAJAS": 2274, "KILOS": 18646.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "RED GLOBE", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 41, "CAJAS": 78025, "KILOS": 639805.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "RED SEEDLESS", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 12, "CAJAS": 25114, "KILOS": 161707.8}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRASIXTEEN", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 1, "CAJAS": 570, "KILOS": 4161.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRASIXTEEN / (SABLE SEEDLESS®)", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 18, "CAJAS": 39758, "KILOS": 294336.5}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRATHIRTYFIVE", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 8, "CAJAS": 9405, "KILOS": 78904.2}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRATHIRTYFIVE", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 2676, "KILOS": 21943.2}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRATHIRTYFIVE-AUTUMNCRISP®", "EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 2, "CAJAS": 2682, "KILOS": 21992.4}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRATHIRTYFIVE-AUTUMNCRISP®", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 45, "CAJAS": 91189, "KILOS": 617879.4}, {"NOM_ESP": "UVAS", "NOM_VAR": "SUGRATHIRTYFIVE-AUTUMNCRISP®", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 6, "CAJAS": 7970, "KILOS": 57525.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "TIMCO", "EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 16, "CAJAS": 11584, "KILOS": 94185.0}, {"NOM_ESP": "UVAS", "NOM_VAR": "TIMCO", "EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 19, "CAJAS": 25651, "KILOS": 212526.2}];
+const RESUMEN_EMP = [{"EMPRESA": "DONAFRUT", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 38, "CAJAS": 107608, "KILOS": 750314.2}, {"EMPRESA": "EXSER", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 99, "CAJAS": 214368, "KILOS": 1586599.7}, {"EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "AEREO", "CONTENEDORES": 34, "CAJAS": 43045, "KILOS": 112387.4}, {"EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "MARITIMO", "CONTENEDORES": 269, "CAJAS": 1008598, "KILOS": 5242054.2}, {"EMPRESA": "FRUTEA", "TIPO_TRANSPORTE": "TERRESTRE", "CONTENEDORES": 1, "CAJAS": 4608, "KILOS": 46080.0}];
+
+const COLORS = { MARITIMO:'#2fb0a0', AEREO:'#f0a83e', TERRESTRE:'#8faa5a' };
+const EMP_COLORS = { FRUTEA:'#e0475c', EXSER:'#3f7fd9', DONAFRUT:'#f0a83e' };
+
+let state = { especie:'TODAS', empresa: 'TODAS', tipo: 'TODOS', sortKey:'CONTENEDORES', sortDir:-1 };
+
+const EMPRESAS = ['TODAS', ...Array.from(new Set(DETALLE.map(d=>d.EMPRESA)))];
+const TIPOS = ['TODOS','MARITIMO','AEREO','TERRESTRE'];
+const ESPECIES = ['TODAS', ...Array.from(new Set(DETALLE.map(d=>d.NOM_ESP))).sort((a,b)=>{
+  const totA = DETALLE.filter(d=>d.NOM_ESP===a).reduce((s,d)=>s+d.CONTENEDORES,0);
+  const totB = DETALLE.filter(d=>d.NOM_ESP===b).reduce((s,d)=>s+d.CONTENEDORES,0);
+  return totB-totA;
+})];
+
+function fmt(n){ return Math.round(n).toLocaleString('es-CL'); }
+function titleCase(s){ return s.charAt(0)+s.slice(1).toLowerCase(); }
+
+function filtered(){
+  return DETALLE.filter(d =>
+    (state.especie==='TODAS' || d.NOM_ESP===state.especie) &&
+    (state.empresa==='TODAS' || d.EMPRESA===state.empresa) &&
+    (state.tipo==='TODOS' || d.TIPO_TRANSPORTE===state.tipo)
+  );
+}
+
+function renderChips(){
+  const espSelect = document.getElementById('especieSelect');
+  if(!espSelect.dataset.built){
+    espSelect.innerHTML = ESPECIES.map(e=>
+      `<option value="${e}">${e==='TODAS'?'Todas las especies':titleCase(e)}</option>`
+    ).join('');
+    espSelect.addEventListener('change', ()=>{ state.especie = espSelect.value; renderAll(); });
+    espSelect.dataset.built = '1';
+  }
+  espSelect.value = state.especie;
+
+  const empBox = document.getElementById('empChips');
+  empBox.innerHTML = EMPRESAS.map(e=>
+    `<button class="chip ${state.empresa===e?'active':''}" data-emp="${e}">${e==='TODAS'?'Todas':e}</button>`
+  ).join('');
+  empBox.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    state.empresa = b.dataset.emp; renderAll();
+  }));
+
+  const tipoBox = document.getElementById('tipoChips');
+  tipoBox.innerHTML = TIPOS.map(t=>
+    `<button class="chip ${state.tipo===t?'active':''}" data-type="${t}">${t==='TODOS'?'Todos':t.charAt(0)+t.slice(1).toLowerCase()}</button>`
+  ).join('');
+  tipoBox.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    state.tipo = b.dataset.type; renderAll();
+  }));
+}
+
+function renderKpis(){
+  const rows = filtered();
+  const totalCont = rows.reduce((s,r)=>s+r.CONTENEDORES,0);
+  const totalCajas = rows.reduce((s,r)=>s+r.CAJAS,0);
+  const totalKilos = rows.reduce((s,r)=>s+r.KILOS,0);
+  const nAereo = rows.filter(r=>r.TIPO_TRANSPORTE==='AEREO').reduce((s,r)=>s+r.CONTENEDORES,0);
+  const pctAereo = totalCont ? (100*nAereo/totalCont).toFixed(1) : '0.0';
+  const nEspecies = new Set(rows.map(r=>r.NOM_ESP)).size;
+
+  const kpis = [
+    {lbl:'Contenedores', val:fmt(totalCont), stamp:'TOTAL', accent:true},
+    {lbl:'Cajas', val:fmt(totalCajas), stamp:'CAJAS'},
+    {lbl:'Kilos', val:fmt(totalKilos), stamp:'KG'},
+    {lbl:'% vía aérea', val:pctAereo, unit:'%', stamp:'AEREO'},
+    {lbl:'Especies activas', val:nEspecies, stamp:'SKU'},
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k=>`
+    <div class="tag ${k.accent?'accent':''}">
+      <span class="stamp">${k.stamp}</span>
+      <div class="lbl">${k.lbl}</div>
+      <div class="num">${k.val}${k.unit?`<span>${k.unit}</span>`:''}</div>
+    </div>
+  `).join('');
+}
+
+let chartEspecie, chartEmpresa;
+
+function renderCharts(){
+  const rows = filtered();
+  const especies = Array.from(new Set(rows.map(r=>r.NOM_ESP))).sort((a,b)=>{
+    const totA = rows.filter(r=>r.NOM_ESP===a).reduce((s,r)=>s+r.CONTENEDORES,0);
+    const totB = rows.filter(r=>r.NOM_ESP===b).reduce((s,r)=>s+r.CONTENEDORES,0);
+    return totB-totA;
+  });
+  const tiposActivos = state.tipo==='TODOS' ? ['MARITIMO','AEREO','TERRESTRE'] : [state.tipo];
+
+  const datasets = tiposActivos.map(t=>({
+    label: t.charAt(0)+t.slice(1).toLowerCase(),
+    data: especies.map(e => rows.filter(r=>r.NOM_ESP===e && r.TIPO_TRANSPORTE===t).reduce((s,r)=>s+r.CONTENEDORES,0)),
+    backgroundColor: COLORS[t],
+    borderRadius:3,
+    stack:'s'
+  }));
+
+  const ctx1 = document.getElementById('chartEspecie').getContext('2d');
+  if(chartEspecie) chartEspecie.destroy();
+  chartEspecie = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels: especies.map(e=>e.charAt(0)+e.slice(1).toLowerCase()), datasets },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'#8ea3b3', font:{family:'JetBrains Mono', size:11} } } },
+      scales:{
+        x:{ stacked:true, ticks:{color:'#5b7186', font:{family:'JetBrains Mono',size:10}}, grid:{color:'#ffffff0d'} },
+        y:{ stacked:true, ticks:{color:'#e7edf1', font:{family:'Inter',size:12}}, grid:{display:false} }
+      }
+    }
+  });
+
+  const empresas = state.empresa==='TODAS' ? EMPRESAS.slice(1) : [state.empresa];
+  const empData = empresas.map(e => rows.filter(r=>r.EMPRESA===e).reduce((s,r)=>s+r.CONTENEDORES,0));
+  const ctx2 = document.getElementById('chartEmpresa').getContext('2d');
+  if(chartEmpresa) chartEmpresa.destroy();
+  chartEmpresa = new Chart(ctx2, {
+    type:'doughnut',
+    data:{
+      labels: empresas,
+      datasets:[{ data: empData, backgroundColor: empresas.map(e=>EMP_COLORS[e]), borderColor:'#0f1f2c', borderWidth:3 }]
+    },
+    options:{
+      cutout:'62%',
+      plugins:{ legend:{ position:'bottom', labels:{ color:'#8ea3b3', font:{family:'JetBrains Mono',size:11}, padding:14 } } }
+    }
+  });
+}
+
+function renderTable(){
+  let rows = filtered().slice();
+  rows.sort((a,b)=>{
+    const k = state.sortKey;
+    if(typeof a[k]==='string') return a[k].localeCompare(b[k]) * state.sortDir;
+    return (a[k]-b[k]) * state.sortDir;
+  });
+  document.getElementById('tbody').innerHTML = rows.map(r=>`
+    <tr>
+      <td class="esp">${r.NOM_ESP.charAt(0)+r.NOM_ESP.slice(1).toLowerCase()}</td>
+      <td>${r.NOM_VAR}</td>
+      <td>${r.EMPRESA}</td>
+      <td><span class="badge ${r.TIPO_TRANSPORTE}">${r.TIPO_TRANSPORTE}</span></td>
+      <td class="right">${fmt(r.CONTENEDORES)}</td>
+      <td class="right">${fmt(r.CAJAS)}</td>
+      <td class="right">${fmt(r.KILOS)}</td>
+    </tr>
+  `).join('');
+  document.getElementById('fContenedores').textContent = fmt(rows.reduce((s,r)=>s+r.CONTENEDORES,0));
+  document.getElementById('fCajas').textContent = fmt(rows.reduce((s,r)=>s+r.CAJAS,0));
+  document.getElementById('fKilos').textContent = fmt(rows.reduce((s,r)=>s+r.KILOS,0));
+}
+
+document.querySelectorAll('#detailTable thead th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    if(state.sortKey===key){ state.sortDir *= -1; } else { state.sortKey = key; state.sortDir = -1; }
+    renderTable();
+  });
+});
+
+function renderAll(){
+  renderChips();
+  renderKpis();
+  renderCharts();
+  renderTable();
+}
+renderAll();
+</script>
+</body>
+</html>
