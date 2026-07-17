@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resumen de Embarques</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#F1F0EB;--sf:#fff;--s2:#ECEAE1;--s3:#E0DDD3;
+  --bd:#D6D3C8;--bd2:#C0BDB0;
+  --tx:#1A1916;--t2:#5A5850;--t3:#94928A;
+  --acc:#0D47A1;--accbg:#E3EDF9;
+  --pen:#BF360C;--penbg:#FBE9E7;
+  --arr:#1B5E20;--arrbg:#E3F2E4;
+  --hoy:#0D47A1;--hoybg:#E3EDF9;
+  --nh:50px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);font-size:13px;min-height:100vh}
+
+.nav{height:var(--nh);background:#1A1916;display:flex;align-items:center;padding:0 1.25rem;gap:10px;position:sticky;top:0;z-index:300}
+.nav-brand{color:#fff;font-size:13px;font-weight:700;letter-spacing:-.01em}
+.nav-sub{color:rgba(255,255,255,.4);font-size:11px;font-family:monospace;margin-left:auto}
+
+.page{padding:.9rem 1.25rem;max-width:1420px;margin:0 auto}
+
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:.9rem}
+.mc{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.65rem .9rem;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc)}
+.mc.cp::before{background:var(--pen)}
+.mc.ca::before{background:var(--arr)}
+.ml{font-size:9px;font-family:monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.mv{font-size:21px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.ms{font-size:10px;color:var(--t3);margin-top:2px}
+
+.fbar{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.7rem 1rem;margin-bottom:.9rem;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:9px;font-family:monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+select,input[type=text]{font-family:inherit;font-size:11px;padding:5px 8px;border-radius:4px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx);min-width:105px;cursor:pointer}
+select:focus,input:focus{outline:none;border-color:var(--acc)}
+.btn-cl{font-size:10px;font-family:monospace;padding:5px 11px;border-radius:4px;border:1px solid var(--bd2);background:var(--s2);color:var(--t2);cursor:pointer;white-space:nowrap;align-self:flex-end}
+.btn-cl:hover{background:var(--s3)}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.gc{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.85rem 1rem}
+.gct{font-size:9px;font-family:monospace;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.65rem}
+.leg{display:flex;flex-wrap:wrap;gap:5px;margin-top:.5rem}
+.li{display:flex;align-items:center;gap:4px;font-size:9px;font-family:monospace;color:var(--t2)}
+.lsq{width:7px;height:7px;border-radius:1px;flex-shrink:0}
+
+.tw{background:var(--sf);border:1px solid var(--bd);border-radius:6px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:11.5px;white-space:nowrap}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--bd)}
+th{background:var(--s2);position:sticky;top:0;cursor:pointer;user-select:none;color:var(--t2);font-weight:700;font-size:10px;font-family:monospace;text-transform:uppercase;letter-spacing:.04em}
+th:hover{color:var(--tx)}
+th .si{opacity:.4;margin-left:3px}
+th.srt .si{opacity:1;color:var(--acc)}
+tr:hover td{background:#FAFAF6}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.b{font-size:9px;font-family:monospace;padding:2px 7px;border-radius:3px;font-weight:600;white-space:nowrap}
+.b-pen{background:var(--penbg);color:var(--pen)}
+.b-hoy{background:var(--hoybg);color:var(--hoy)}
+.b-arr{background:var(--arrbg);color:var(--arr)}
+tfoot td{font-weight:700;background:var(--s2)}
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="nav-brand">📋 Resumen de Embarques</span>
+  <span class="nav-sub" id="subtitle"></span>
+</div>
+
+<div class="page">
+  <div class="metrics">
+    <div class="mc"><div class="ml">Embarques</div><div class="mv" id="statCount">0</div></div>
+    <div class="mc"><div class="ml">Total cajas</div><div class="mv" id="statCajas">0</div></div>
+    <div class="mc"><div class="ml">Naves</div><div class="mv" id="statNaves">0</div></div>
+    <div class="mc"><div class="ml">Clientes</div><div class="mv" id="statClientes">0</div></div>
+    <div class="mc cp"><div class="ml">🟡 Pendientes</div><div class="mv" style="color:var(--pen)" id="statPend">0</div></div>
+    <div class="mc ca"><div class="ml">🟢 Arribados</div><div class="mv" style="color:var(--arr)" id="statArr">0</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="gc"><div class="gct">Cajas por cliente</div><div style="height:195px;position:relative"><canvas id="gc1"></canvas></div></div>
+    <div class="gc"><div class="gct">Cajas por especie</div><div style="height:160px;position:relative"><canvas id="gc2"></canvas></div><div class="leg" id="gc2l"></div></div>
+  </div>
+  <div class="g2" style="margin-bottom:.9rem">
+    <div class="gc"><div class="gct">Cajas por semana de zarpe · ★ semana actual</div><div style="height:150px;position:relative"><canvas id="gc3"></canvas></div></div>
+    <div class="gc"><div class="gct">Cajas por país destino</div><div style="height:150px;position:relative"><canvas id="gc4"></canvas></div><div class="leg" id="gc4l"></div></div>
+  </div>
+
+  <div class="fbar">
+    <div class="fg"><label>Estado arribo</label>
+      <select id="fEstado">
+        <option value="">Todos</option>
+        <option value="Pendiente">🟡 Pendiente</option>
+        <option value="Arriba hoy">🔵 Arriba hoy</option>
+        <option value="Arribado">🟢 Arribado</option>
+      </select>
+    </div>
+    <div class="fg"><label>Cliente final</label><select id="fCliente"><option value="">Todos</option></select></div>
+    <div class="fg"><label>Nave</label><select id="fNave"><option value="">Todas</option></select></div>
+    <div class="fg"><label>Especie</label><select id="fEspecie"><option value="">Todas</option></select></div>
+    <div class="fg"><label>Puerto</label><select id="fPuerto"><option value="">Todos</option></select></div>
+    <div class="fg"><label>Destino</label><select id="fDestino"><option value="">Todos</option></select></div>
+    <div class="fg"><label>Pais</label><select id="fPais"><option value="">Todos</option></select></div>
+    <div class="fg"><label>Buscar contenedor / nave / planilla</label><input type="text" id="fQ" placeholder="Escribe para buscar..."></div>
+    <button class="btn-cl" id="btnReset">✕ Limpiar</button>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th data-c="planilla">Planilla <span class="si">↕</span></th>
+          <th data-c="cont">Contenedor <span class="si">↕</span></th>
+          <th data-c="cliente">Cliente final <span class="si">↕</span></th>
+          <th data-c="nave">Nave <span class="si">↕</span></th>
+          <th data-c="bl">BL <span class="si">↕</span></th>
+          <th data-c="semana">Sem. zarpe <span class="si">↕</span></th>
+          <th data-c="eta" class="srt">ETA <span class="si">↑</span></th>
+          <th data-c="especie">Especie <span class="si">↕</span></th>
+          <th data-c="puerto">Puerto <span class="si">↕</span></th>
+          <th data-c="destino">Destino <span class="si">↕</span></th>
+          <th data-c="pais">Pais <span class="si">↕</span></th>
+          <th data-c="cajas">Cajas <span class="si">↕</span></th>
+          <th data-c="estado">Estado <span class="si">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot><tr><td colspan="11">Total general</td><td class="num" id="footTotal">0</td><td></td></tr></tfoot>
+    </table>
+  </div>
+</div>
+
+<script>
+const RAW = [{"planilla": "DO2526_031", "cont": "HLBU967886-3", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "ISTANBUL EXPRESS", "dus": "13358468", "legalizado": "Si", "bl": "HLCUSCL260322719", "semana": 12, "eta": "2026-04-05", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "DO2526_048", "cont": "MNBU400663-3", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "MAERSK BAYETE", "dus": "13553245-2", "legalizado": "Si", "bl": "272347309", "semana": 26, "eta": "2026-07-10", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "DO2526_049", "cont": "HLBU957044-1", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "COSCO SHIPPING SEINE", "dus": "13577370-0", "legalizado": "No", "bl": "", "semana": 28, "eta": "2026-07-25", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 320}, {"planilla": "FR2526_207", "cont": "MNBU376599-6", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "MAERSK BATUR", "dus": "13282675-7", "legalizado": "Si", "bl": "265703046", "semana": 7, "eta": "2026-02-27", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_208", "cont": "MNBU340608-6", "cliente": "EXIFRUIT", "nom_rec": "EXIFRUIT SAS", "nave": "MAERSK BATUR", "dus": "13282667-6", "legalizado": "Si", "bl": "266275563", "semana": 7, "eta": "2026-02-27", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_209", "cont": "MMAU105234-3", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "MAERSK BATUR", "dus": "13282670-6", "legalizado": "Si", "bl": "265773879", "semana": 7, "eta": "2026-02-27", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_217", "cont": "MNBU036150-0", "cliente": "NUEVO AMANECER", "nom_rec": "IMPORT-EXPORT UN NUEVO AMANECER 4M2019, C.A.,", "nave": "MAERSK JAIPUR", "dus": "13296839-k", "legalizado": "Si", "bl": "266378516", "semana": 8, "eta": "2026-03-09", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "LA GUAIRA", "pais": "VENEZUELA", "cajas": 1280}, {"planilla": "FR2526_221", "cont": "MNBU353970-4", "cliente": "EXIFRUIT", "nom_rec": "EXIFRUIT SAS", "nave": "MAERSK JAIPUR", "dus": "13296841-1", "legalizado": "Si", "bl": "266372101", "semana": 8, "eta": "2026-03-06", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_222", "cont": "MNBU428940-4", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "MAERSK JAIPUR", "dus": "13297650-3", "legalizado": "Si", "bl": "266515497", "semana": 8, "eta": "2026-03-06", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_225", "cont": "FBIU512511-7", "cliente": "EXIFRUIT", "nom_rec": "EXIFRUIT SAS", "nave": "MSC ALANYA", "dus": "13305337-9", "legalizado": "Si", "bl": "CHL-2600334", "semana": 8, "eta": "2026-03-10", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_229", "cont": "MNBU422458-0", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "MAERSK BATAM", "dus": "13315010-2", "legalizado": "Si", "bl": "266640001", "semana": 9, "eta": "2026-03-13", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_230", "cont": "MNBU417130-3", "cliente": "C&M", "nom_rec": "C&M FRUIT S.A.S.", "nave": "MAERSK BATAM", "dus": "13314528-1", "legalizado": "Si", "bl": "266541319", "semana": 9, "eta": "2026-03-13", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_239", "cont": "FBIU506328-9", "cliente": "BAQUEDANO", "nom_rec": "FRUTOS LUPABE SRL", "nave": "VALPARAISO EXPRESS", "dus": "13324461-1", "legalizado": "Si", "bl": "COSU6445715900", "semana": 10, "eta": "2026-03-21", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "CAUCEDO", "pais": "REPUBLICA DOMINICANA", "cajas": 640}, {"planilla": "FR2526_256", "cont": "HLBU904067-3", "cliente": "BLESSED", "nom_rec": "BLESSED FRUITS S.A.S", "nave": "CARTAGENA EXPRESS", "dus": "13339489-3", "legalizado": "Si", "bl": "SS0132347", "semana": 11, "eta": "2026-03-20", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_331", "cont": "HLBU901185-0", "cliente": "FRUITT COL", "nom_rec": "FRUITT COL S.A.S.", "nave": "SANTOS EXPRESS", "dus": "13375094-0", "legalizado": "Si", "bl": "HLCUSCL260355285", "semana": 13, "eta": "2026-04-10", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_448", "cont": "CGMU936253-3", "cliente": "WONJUN", "nom_rec": "WONJUN PRODUCE", "nave": "CMA CGM HELLIUM", "dus": "13544320-4", "legalizado": "Si", "bl": "SNG0512854", "semana": 25, "eta": "2026-07-27", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "BUSAN", "pais": "COREA DEL SUR", "cajas": 1440}, {"planilla": "FR2526_449", "cont": "TRIU822372-3", "cliente": "TRIPLE ALIANZA", "nom_rec": "TRIPLE ALIANZA SAS", "nave": "MSC BRUNELLA", "dus": "13547365-0", "legalizado": "Si", "bl": "MEDUW9480437", "semana": 25, "eta": "2026-07-01", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_450", "cont": "HLBU967288-6", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "CMA CGM JACQUES JOSEPH", "dus": "13547673-0", "legalizado": "Si", "bl": "HLCUSCL260644459", "semana": 26, "eta": "2026-07-21", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1600}, {"planilla": "FR2526_451", "cont": "HLBU623091-5", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "CMA CGM JACQUES JOSEPH", "dus": "13548697-3", "legalizado": "Si", "bl": "HLCUSCL260651519", "semana": 26, "eta": "2026-07-21", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1440}, {"planilla": "FR2526_452", "cont": "TRLU189641-3", "cliente": "JULIAN", "nom_rec": "DISTRIAJOS EL REY S.A.S.", "nave": "MSC SERENA NX626R", "dus": "13554322-5", "legalizado": "Si", "bl": "VAPBUN01345261", "semana": 26, "eta": "2026-07-14", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_453", "cont": "HLBU925836-7", "cliente": "JOSE AMADOR", "nom_rec": "COMERCIALIZADORA LA GRAN MANZANA SAS", "nave": "CALLAO EXPRESS", "dus": "13555606-8", "legalizado": "No", "bl": "CHL-2601223", "semana": 27, "eta": "2026-07-18", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_454", "cont": "SEGU955997-7", "cliente": "WONJUN", "nom_rec": "WONJUN PRODUCE", "nave": "CMA CGM OSMIUM", "dus": "13555996-2", "legalizado": "No", "bl": "SNG0513432", "semana": 27, "eta": "2026-08-03", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "BUSAN", "pais": "COREA DEL SUR", "cajas": 1440}, {"planilla": "FR2526_455", "cont": "HLXU875786-2", "cliente": "EXIFRUIT", "nom_rec": "EXIFRUIT SAS", "nave": "CALLAO EXPRESS", "dus": "13556902-K", "legalizado": "No", "bl": "CHL-2601225", "semana": 27, "eta": "2026-07-18", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_456", "cont": "HLBU965964-7", "cliente": "ODA", "nom_rec": "XUEWANG AGRICULTURE (CHONGQING)CO., LTD", "nave": "ONE SAPPHIRE", "dus": "13556901-1", "legalizado": "Si", "bl": "HLCUSCL260661062", "semana": 27, "eta": "2026-07-23", "especie": "LIMONES", "puerto": "VALPARAISO", "destino": "NANSHA", "pais": "CHINA", "cajas": 1600}, {"planilla": "FR2526_457", "cont": "HLBU984939-6", "cliente": "OPTION", "nom_rec": "SHANTOU TXS SUPPLY CHAIN MGMT CO.,LTD", "nave": "ONE SAPPHIRE", "dus": "13558197-6", "legalizado": "Si", "bl": "HLCUSCL260666256", "semana": 27, "eta": "2026-07-23", "especie": "LIMONES", "puerto": "VALPARAISO", "destino": "NANSHA", "pais": "CHINA", "cajas": 1600}, {"planilla": "FR2526_458", "cont": "HLBU947724-1", "cliente": "EXSA", "nom_rec": "EXSA EUROPE B.V.", "nave": "CALLAO EXPRESS", "dus": "13558976-4", "legalizado": "No", "bl": "HLCUSCL260653463", "semana": 27, "eta": "2026-08-28", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1600}, {"planilla": "FR2526_459", "cont": "CAIU565173-2", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "CALLAO EXPRESS", "dus": "13559498-9", "legalizado": "No", "bl": "HLCUSCL260671332", "semana": 27, "eta": "2026-08-28", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1440}, {"planilla": "FR2526_460", "cont": "HLBU957639-4", "cliente": "ODA", "nom_rec": "XUEWANG AGRICULTURE (CHONGQING)CO., LTD", "nave": "ONE SAPPHIRE", "dus": "13562457-8", "legalizado": "Si", "bl": "HLCUSCL260666552", "semana": 27, "eta": "2026-07-23", "especie": "LIMONES", "puerto": "VALPARAISO", "destino": "NANSHA", "pais": "CHINA", "cajas": 1600}, {"planilla": "FR2526_461", "cont": "MNBU058103-8", "cliente": "TRIPLE ALIANZA", "nom_rec": "TRIPLE ALIANZA SAS", "nave": "MAERSK BATAM", "dus": "13565559-7", "legalizado": "No", "bl": "272411305", "semana": 27, "eta": "2026-07-17", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_462", "cont": "HLBU942132-4", "cliente": "TRIPLE ALIANZA", "nom_rec": "TRIPLE ALIANZA SAS", "nave": "CALLAO EXPRESS", "dus": "13565558-9", "legalizado": "No", "bl": "HLCUSCL260658814", "semana": 27, "eta": "2026-07-20", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "CARTAGENA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_463", "cont": "HLBU971275-7", "cliente": "BRAVO", "nom_rec": "BRAVO S.A.", "nave": "CALLAO EXPRESS", "dus": "13565560-0", "legalizado": "No", "bl": "HLCUSCL260656282", "semana": 27, "eta": "2026-07-16", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "CAUCEDO", "pais": "REPUBLICA DOMINICANA", "cajas": 1280}, {"planilla": "FR2526_464", "cont": "HLBU620898-0", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "CALLAO EXPRESS", "dus": "13565906-1", "legalizado": "No", "bl": "HLCUSCL260659788", "semana": 27, "eta": "2026-07-28", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1520}, {"planilla": "FR2526_465", "cont": "HLBU965041-8", "cliente": "EXSA", "nom_rec": "EXSA EUROPE B.V.", "nave": "CALLAO EXPRESS", "dus": "13565907-K", "legalizado": "No", "bl": "HLCUSCL260672083", "semana": 27, "eta": "2026-08-28", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1600}, {"planilla": "FR2526_466", "cont": "MNBU417345-6", "cliente": "ROBINSON FRESH", "nom_rec": "DISTRIBUIDORA DE FRUTAS SANTA CLARA S.A.S", "nave": "FORT DESAIX", "dus": "13567089-8", "legalizado": "No", "bl": "272559895", "semana": 28, "eta": "2026-07-17", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_469", "cont": "HLBU920905-9", "cliente": "OPTION", "nom_rec": "SHANTOU TXS SUPPLY CHAIN MGMT CO.,LTD", "nave": "MONTEVIDEO EXPRESS", "dus": "13572637-0", "legalizado": "No", "bl": "HLCUSCL260668273", "semana": 28, "eta": "2026-08-10", "especie": "LIMONES", "puerto": "VALPARAISO", "destino": "NANSHA", "pais": "CHINA", "cajas": 1600}, {"planilla": "FR2526_470", "cont": "BMOU921797-7", "cliente": "EXSA", "nom_rec": "EXSA EUROPE B.V.", "nave": "COSCO SHIPPING SEINE", "dus": "13573866-2", "legalizado": "No", "bl": "", "semana": 28, "eta": "2026-08-04", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1440}, {"planilla": "FR2526_471", "cont": "CAIU552979-2", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "COSCO SHIPPING SEINE", "dus": "13573912-k", "legalizado": "No", "bl": "", "semana": 28, "eta": "2026-08-04", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 1200}, {"planilla": "FR2526_472", "cont": "HLBU951713-3", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "COSCO SHIPPING SEINE", "dus": "135744463-8", "legalizado": "No", "bl": "", "semana": 28, "eta": "2026-08-04", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 792}, {"planilla": "FR2526_473", "cont": "CAAU406975-0", "cliente": "JULIAN", "nom_rec": "DISTRIAJOS EL REY S.A.S.", "nave": "COSCO SHIPPING SEINE", "dus": "13576530-9", "legalizado": "No", "bl": "", "semana": 28, "eta": "2026-07-25", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_474", "cont": "MNBU010690-6", "cliente": "TRIPLE ALIANZA", "nom_rec": "TRIPLE ALIANZA SAS", "nave": "FORT DESAIX", "dus": "13576529-5", "legalizado": "No", "bl": "272989997", "semana": 28, "eta": "2026-07-24", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1240}, {"planilla": "FR2526_475", "cont": "MNBU429192-6", "cliente": "TRIPLE ALIANZA", "nom_rec": "TRIPLE ALIANZA SAS", "nave": "FORT DESAIX", "dus": "13576582-1", "legalizado": "No", "bl": "273969877", "semana": 28, "eta": "2026-07-17", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_476", "cont": "CGMU564664-0", "cliente": "ANDY", "nom_rec": "SAMJOO MARKETING INC", "nave": "CMA CGM CAPE COD", "dus": "13583358-4", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-16", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "BUSAN", "pais": "COREA DEL SUR", "cajas": 864}, {"planilla": "FR2526_477", "cont": "CGMU557173-0", "cliente": "WONJUN", "nom_rec": "WONJUN PRODUCE", "nave": "CMA CGM CAPE COD", "dus": "13583479-3", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-16", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "BUSAN", "pais": "COREA DEL SUR", "cajas": 936}, {"planilla": "FR2526_478", "cont": "HLBU920045-2", "cliente": "OPTION", "nom_rec": "SHANTOU TXS SUPPLY CHAIN MGMT CO.,LTD", "nave": "ONE SPHERE", "dus": "13579445-7", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-07-19", "especie": "LIMONES", "puerto": "VALPARAISO", "destino": "NANSHA", "pais": "CHINA", "cajas": 1600}, {"planilla": "FR2526_479", "cont": "UAEU126884-1", "cliente": "OPTION", "nom_rec": "SHANTOU TXS SUPPLY CHAIN MGMT CO.,LTD", "nave": "ONE SPHERE", "dus": "13579721-9", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-19", "especie": "LIMONES", "puerto": "VALPARAISO", "destino": "NANSHA", "pais": "CHINA", "cajas": 1600}, {"planilla": "FR2526_480", "cont": "TRIU821794-7", "cliente": "C&M", "nom_rec": "C&M FRUIT S.A.S.", "nave": "MSC ALANYA", "dus": "13579833-9", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-07-30", "especie": "PERAS", "puerto": "VALPARAISO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 1280}, {"planilla": "FR2526_481", "cont": "HLBU914674-7", "cliente": "BRAVO", "nom_rec": "BRAVO S.A.", "nave": "VALPARAISO EXPRESS", "dus": "13584185-4", "legalizado": "No", "bl": "", "semana": 30, "eta": "2026-08-06", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "CAUCEDO", "pais": "REPUBLICA DOMINICANA", "cajas": 832}, {"planilla": "FR2526_482", "cont": "OERU440132-0", "cliente": "CMR", "nom_rec": "FRUIT CMR , SA", "nave": "CMA  CGM ESTELLE", "dus": "13587965-7", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-11", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 72}, {"planilla": "FR2526_483", "cont": "OERU439199-9", "cliente": "EXSA", "nom_rec": "EXSA EUROPE B.V.", "nave": "CMA CGM ESTELLE", "dus": "13587966-5", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-11", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 464}, {"planilla": "FR2526_484", "cont": "HLBU907765-1", "cliente": "JULIAN", "nom_rec": "DISTRIAJOS EL REY S.A.S.", "nave": "VALPARAISO EXPRESS", "dus": "13589208-4", "legalizado": "No", "bl": "", "semana": 30, "eta": "2026-08-15", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 896}, {"planilla": "FR2526_485", "cont": "BMOU924766-8", "cliente": "JULIAN", "nom_rec": "DISTRIAJOS EL REY S.A.S.", "nave": "VALPARAISO EXPRESS", "dus": "13589503-2", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-15", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 568}, {"planilla": "FR2526_486", "cont": "HLBU906791-0", "cliente": "OFD", "nom_rec": "ORIGIN FRUIT DIRECT B.V.", "nave": "CMA CGM ESTELLE", "dus": "13590458-9", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-11", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 400}, {"planilla": "FR2526_487", "cont": "HLBU903548-7", "cliente": "CMR", "nom_rec": "FRUIT CMR , SA", "nave": "CMA CGM ESTELLE", "dus": "13590393-0", "legalizado": "No", "bl": "", "semana": 29, "eta": "2026-08-11", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "ROTTERDAM", "pais": "NETHERLANDS", "cajas": 152}, {"planilla": "FR2526_488", "cont": "SZLU913282-3", "cliente": "TRIPLE ALIANZA", "nom_rec": "TRIPLE ALIANZA SAS", "nave": "SEASPAN EMPIRE", "dus": "13593289-2", "legalizado": "No", "bl": "", "semana": 30, "eta": "2026-08-15", "especie": "PERAS", "puerto": "SAN ANTONIO", "destino": "BUENAVENTURA", "pais": "COLOMBIA", "cajas": 728}, {"planilla": "FR2526_489", "cont": "FBIU507876-1", "cliente": "ANDY", "nom_rec": "SAMJOO MARKETING INC", "nave": "CMA CGM BUZIOS", "dus": "13594352-5", "legalizado": "No", "bl": "", "semana": 30, "eta": "2026-08-24", "especie": "LIMONES", "puerto": "SAN ANTONIO", "destino": "BUSAN", "pais": "COREA DEL SUR", "cajas": 360}];
+const HOY = new Date(); HOY.setHours(0,0,0,0);
+
+function estadoDe(etaIso){
+  if(!etaIso) return 'Sin ETA';
+  const [y,m,d] = etaIso.split('-').map(Number);
+  const dt = new Date(y, m-1, d); dt.setHours(0,0,0,0);
+  if(dt > HOY) return 'Pendiente';
+  if(dt.getTime() === HOY.getTime()) return 'Arriba hoy';
+  return 'Arribado';
+}
+const data = RAW.map(d => ({...d, estado: estadoDe(d.eta)}));
+
+function unique(arr){ return [...new Set(arr)].filter(Boolean).sort((a,b)=>a.localeCompare(b,'es')); }
+function fillSel(id, values){
+  const el = document.getElementById(id);
+  values.forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    el.appendChild(o);
+  });
+}
+fillSel('fCliente', unique(data.map(d=>d.cliente)));
+fillSel('fNave', unique(data.map(d=>d.nave)));
+fillSel('fEspecie', unique(data.map(d=>d.especie)));
+fillSel('fPuerto', unique(data.map(d=>d.puerto)));
+fillSel('fDestino', unique(data.map(d=>d.destino)));
+fillSel('fPais', unique(data.map(d=>d.pais)));
+
+let sortKey = 'eta', sortDir = 1;
+
+const PAL = ['#0D47A1','#1B5E20','#4A148C','#BF360C','#00695C','#F9A825','#5D4037','#455A64','#AD1457','#33691E'];
+const CH = {};
+function dc(k){ if(CH[k]){ try{ CH[k].destroy(); }catch(e){} delete CH[k]; } }
+function mkO(){
+  return {responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:function(c){return (c.dataset && c.dataset.label ? c.dataset.label+': ' : '')+c.raw.toLocaleString('es')+' cajas';}}}
+    },
+    scales:{
+      x:{ticks:{font:{size:9},maxRotation:40},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{font:{size:9},callback:function(v){return v>=1000?(v/1000).toFixed(0)+'k':v;}},grid:{color:'rgba(0,0,0,0.04)'}}
+    }
+  };
+}
+function barC(k,id,lb,dt,cl){
+  dc(k); const ctx=document.getElementById(id); if(!ctx||!lb.length) return;
+  CH[k]=new Chart(ctx,{type:'bar',data:{labels:lb,datasets:[{data:dt,backgroundColor:cl||PAL,borderRadius:2,borderSkipped:false}]},options:mkO()});
+}
+function donutC(k,id,lb,dt,cl,legId){
+  dc(k); const ctx=document.getElementById(id); if(!ctx||!lb.length) return;
+  CH[k]=new Chart(ctx,{type:'doughnut',data:{labels:lb,datasets:[{data:dt,backgroundColor:cl,borderWidth:1,hoverOffset:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.label+': '+c.raw.toLocaleString('es');}}}}}});
+  if(legId){
+    const el=document.getElementById(legId); el.innerHTML='';
+    lb.forEach((l,i)=>{
+      const d=document.createElement('div'); d.className='li';
+      d.innerHTML='<span class="lsq" style="background:'+cl[i]+'"></span>'+l+' ('+dt[i].toLocaleString('es')+')';
+      el.appendChild(d);
+    });
+  }
+}
+function grp(rows, key){
+  const o = {};
+  rows.forEach(r=>{ const k = r[key] ?? 'N/D'; o[k] = (o[k]||0) + r.cajas; });
+  return o;
+}
+function renderCharts(rows){
+  const byCli = grp(rows,'cliente');
+  const cliK = Object.keys(byCli).sort((a,b)=>byCli[b]-byCli[a]).slice(0,10);
+  barC('c1','gc1',cliK,cliK.map(k=>byCli[k]),PAL);
+
+  const byEsp = grp(rows,'especie');
+  const espK = Object.keys(byEsp).sort((a,b)=>byEsp[b]-byEsp[a]);
+  donutC('c2','gc2',espK,espK.map(k=>byEsp[k]),PAL.slice(0,espK.length),'gc2l');
+
+  const bySem = grp(rows,'semana');
+  const semK = Object.keys(bySem).map(Number).filter(n=>n>0).sort((a,b)=>a-b);
+  const semanaActual = getISOWeek(new Date());
+  dc('c3'); const ctx3 = document.getElementById('gc3');
+  if(ctx3 && semK.length){
+    CH['c3'] = new Chart(ctx3,{type:'bar',
+      data:{labels:semK.map(s=>'S'+s+(s===semanaActual?' ★':'')),
+        datasets:[{data:semK.map(s=>bySem[s]||0),
+          backgroundColor:semK.map(s=>s===semanaActual?'#2E9E4A':'#3B7DD8'),borderRadius:2}]},
+      options:mkO()});
+  }
+
+  const byPais = grp(rows,'pais');
+  const paisK = Object.keys(byPais).sort((a,b)=>byPais[b]-byPais[a]).slice(0,8);
+  donutC('c4','gc4',paisK,paisK.map(k=>byPais[k]),PAL.slice(0,paisK.length),'gc4l');
+}
+function getISOWeek(d){
+  const date = new Date(d.getTime());
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate()+3-((date.getDay()+6)%7));
+  const week1 = new Date(date.getFullYear(),0,4);
+  return 1+Math.round(((date.getTime()-week1.getTime())/86400000-3+((week1.getDay()+6)%7))/7);
+}
+
+function applyFilters(){
+  const estado = document.getElementById('fEstado').value;
+  const cliente = document.getElementById('fCliente').value;
+  const nave = document.getElementById('fNave').value;
+  const especie = document.getElementById('fEspecie').value;
+  const puerto = document.getElementById('fPuerto').value;
+  const destino = document.getElementById('fDestino').value;
+  const pais = document.getElementById('fPais').value;
+  const q = (document.getElementById('fQ').value||'').trim().toUpperCase();
+
+  return data.filter(d=>{
+    if(estado && d.estado !== estado) return false;
+    if(cliente && d.cliente !== cliente) return false;
+    if(nave && d.nave !== nave) return false;
+    if(especie && d.especie !== especie) return false;
+    if(puerto && d.puerto !== puerto) return false;
+    if(destino && d.destino !== destino) return false;
+    if(pais && d.pais !== pais) return false;
+    if(q && !(d.cont||'').toUpperCase().includes(q) && !(d.nave||'').toUpperCase().includes(q) && !(d.planilla||'').toUpperCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function estB(e){
+  const m = {Pendiente:'b-pen','Arriba hoy':'b-hoy',Arribado:'b-arr'};
+  return '<span class="b '+(m[e]||'b-pen')+'">'+e+'</span>';
+}
+
+function render(){
+  let rows = applyFilters();
+  renderCharts(rows);
+  rows = [...rows].sort((a,b)=>{
+    let va = a[sortKey], vb = b[sortKey];
+    if(typeof va === 'number'){ return ((va??0)-(vb??0))*sortDir; }
+    va = (va||'').toString(); vb = (vb||'').toString();
+    return va.localeCompare(vb,'es')*sortDir;
+  });
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  rows.forEach(d=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+d.planilla+'</td>'+
+      '<td>'+d.cont+'</td>'+
+      '<td>'+d.cliente+'</td>'+
+      '<td>'+d.nave+'</td>'+
+      '<td>'+(d.bl||'—')+'</td>'+
+      '<td class="num">'+(d.semana??'')+'</td>'+
+      '<td>'+formatDate(d.eta)+'</td>'+
+      '<td>'+d.especie+'</td>'+
+      '<td>'+d.puerto+'</td>'+
+      '<td>'+d.destino+'</td>'+
+      '<td>'+d.pais+'</td>'+
+      '<td class="num">'+d.cajas.toLocaleString('es')+'</td>'+
+      '<td>'+estB(d.estado)+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  const totalCajas = rows.reduce((s,d)=>s+d.cajas,0);
+  const pend = rows.filter(d=>d.estado==='Pendiente');
+  const arri = rows.filter(d=>d.estado==='Arribado'||d.estado==='Arriba hoy');
+  document.getElementById('statCount').textContent = rows.length;
+  document.getElementById('statCajas').textContent = totalCajas.toLocaleString('es');
+  document.getElementById('statNaves').textContent = unique(rows.map(d=>d.nave)).length;
+  document.getElementById('statClientes').textContent = unique(rows.map(d=>d.cliente)).length;
+  document.getElementById('statPend').textContent = pend.length;
+  document.getElementById('statArr').textContent = arri.length;
+  document.getElementById('footTotal').textContent = totalCajas.toLocaleString('es');
+  document.getElementById('subtitle').textContent = rows.length+' de '+data.length+' embarques';
+}
+
+function formatDate(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return d+'-'+m+'-'+y;
+}
+
+['fEstado','fCliente','fNave','fEspecie','fPuerto','fDestino','fPais'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', render);
+});
+document.getElementById('fQ').addEventListener('input', render);
+
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  ['fEstado','fCliente','fNave','fEspecie','fPuerto','fDestino','fPais'].forEach(id=>{
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fQ').value = '';
+  sortKey = 'eta'; sortDir = 1;
+  document.querySelectorAll('thead th').forEach(t=>{
+    t.classList.remove('srt');
+    const s = t.querySelector('.si'); if(s) s.textContent = '↕';
+  });
+  const etaTh = document.querySelector('thead th[data-c="eta"]');
+  etaTh.classList.add('srt');
+  etaTh.querySelector('.si').textContent = '↑';
+  render();
+});
+
+document.querySelectorAll('thead th[data-c]').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const col = th.dataset.c;
+    if(sortKey === col) sortDir *= -1; else { sortKey = col; sortDir = 1; }
+    document.querySelectorAll('thead th').forEach(t=>{
+      t.classList.remove('srt');
+      const s = t.querySelector('.si'); if(s) s.textContent = '↕';
+    });
+    th.classList.add('srt');
+    th.querySelector('.si').textContent = sortDir===1 ? '↑' : '↓';
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
