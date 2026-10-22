@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parámetros de calidad cereza</title>
+<style>:root{color-scheme:light;
+--color-fg:#1f1e1c;--color-fg-muted:#6b6862;--color-bg:#faf9f6;--color-panel:#ffffff;--color-border-line:#e4e1da;
+--color-ok:#2e7d32;--color-warn:#b26a00;--color-bad:#c62828;
+--c1:#c2410c;--c2:#2563eb;--c3:#0f9d76;
+--font-anthropic-sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+--font-anthropic-serif:Georgia,"Times New Roman",serif;
+--cds-font-size-caption:.8rem;--cds-font-size-body:.95rem;--cds-font-size-heading:1.1rem;--cds-font-size-title:1.9rem;--cds-font-weight-medium:600;
+--cds-gap-xs:.25rem;--cds-gap-sm:.5rem;--cds-gap-md:1rem;--cds-gap-lg:1.5rem;--cds-gap-xl:2rem;
+--cds-pad-xs:.3rem;--cds-pad-sm:.6rem;--cds-pad-md:.9rem;--cds-pad-lg:1.25rem;--cds-radius:10px;
+--cds-surface-popover:#f3f1ec;--cds-border:#e4e1da;--cds-shadow-popover:0 4px 14px rgba(0,0,0,.12);--cds-text-secondary:#6b6862;
+--cds-chart-reference:#1f1e1c;--cds-dur-slow:.3s}
+@media (prefers-color-scheme: dark){:root{color-scheme:dark;
+--color-fg:#ecebe8;--color-fg-muted:#a8a59e;--color-bg:#1c1b19;--color-panel:#262522;--color-border-line:#3a3834;
+--color-ok:#81c784;--color-warn:#ffb74d;--color-bad:#ef6c6c;--c1:#fb923c;--c2:#60a5fa;--c3:#34d399;
+--cds-surface-popover:#302e2b;--cds-border:#3a3834;--cds-text-secondary:#a8a59e;--cds-chart-reference:#ecebe8}}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg)}
+#dash-root{max-width:1200px;margin:0 auto;padding:clamp(1rem,4vw,2.5rem)}
+.dash-skeleton{}
+
+#dash-root .cz{font-family:var(--font-anthropic-sans);display:flex;flex-direction:column;gap:var(--cds-gap-xl)}
+#dash-root .cz h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+#dash-root .cz .lead{color:var(--color-fg-muted);margin:var(--cds-gap-xs) 0 0;font-size:var(--cds-font-size-body)}
+#dash-root .cz h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0 0 var(--cds-gap-sm)}
+#dash-root .cz .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+#dash-root .cz .note{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);margin:0 0 var(--cds-gap-md)}
+#dash-root .cz .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:var(--cds-gap-md)}
+#dash-root .cz .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));gap:var(--cds-gap-md)}
+#dash-root .cz .tile{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md) var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-xs);min-width:0}
+#dash-root .cz .tile .lbl{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+#dash-root .cz .tile .big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums}
+#dash-root .cz .tile .txt{font-size:var(--cds-font-size-body)}
+#dash-root .cz .unit{font-size:var(--cds-font-size-body);color:var(--color-fg-muted);margin-left:.25em}
+#dash-root .cz .bar{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm);align-items:center;margin-bottom:var(--cds-gap-md)}
+#dash-root .cz select,#dash-root .cz input{font:inherit;font-size:var(--cds-font-size-body);padding:var(--cds-pad-xs) var(--cds-pad-sm);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg);color:var(--color-fg)}
+#dash-root .cz input{width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+#dash-root .cz .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr));gap:var(--cds-gap-sm);margin-bottom:var(--cds-gap-md)}
+#dash-root .cz .form label{display:flex;flex-direction:column;gap:var(--cds-gap-xs);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+#dash-root .cz .result{display:flex;flex-wrap:wrap;gap:var(--cds-gap-lg);align-items:baseline;margin-bottom:var(--cds-gap-md)}
+#dash-root .cz .result .big{font-family:var(--font-anthropic-serif);font-size:var(--cds-font-size-title);font-weight:400}
+#dash-root .cz .warn{color:var(--color-warn);font-size:var(--cds-font-size-caption)}
+#dash-root .cz .scroll{overflow-x:auto}
+#dash-root .cz table{border-collapse:collapse;width:100%;font-size:var(--cds-font-size-body);font-variant-numeric:tabular-nums}
+#dash-root .cz th{text-align:left;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+#dash-root .cz td{padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);vertical-align:top}
+#dash-root .cz tr.sel td{background:var(--cds-surface-popover)}
+#dash-root .cz td.num,#dash-root .cz th.num{text-align:right}
+#dash-root .cz .ok{color:var(--color-ok)} #dash-root .cz .bad{color:var(--color-bad)}
+#dash-root .cz .chart{position:relative;min-height:9rem}
+#dash-root .cz .tip{position:absolute;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);pointer-events:none;display:none;white-space:nowrap}
+#dash-root .cz .tip .s{color:var(--cds-text-secondary)}
+#dash-root [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+#dash-root [data-dash-source-state=empty]{color:transparent}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+</head>
+<body>
+<div id="dash-root">
+<script>
+window.DATA = {"hidroenfriado": [{"variedad": "SWEET ARYANA", "convencional_min": 1.5, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "ROYAL DAWN", "convencional_min": 1.5, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "SKEENA", "convencional_min": 1.5, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "NIMBA", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "SWEET LORENZ", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "PACIFIC RED", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "BING", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "SANTINA", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "LAPINS", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "KORDIA", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}, {"variedad": "REGINA", "convencional_min": 3, "dia1_postlluvia_min": 1.5, "dia2_postlluvia_min_desde": 1, "dia2_postlluvia_min_hasta": 1.5, "dia3_postlluvia": "Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional"}], "firmeza": [{"rango": "Muy blando", "orden": 1, "firmpro_desde": null, "firmpro_hasta": 180, "durofel_desde": null, "durofel_hasta": 70}, {"rango": "Blando", "orden": 2, "firmpro_desde": 180, "firmpro_hasta": 200, "durofel_desde": 70, "durofel_hasta": 73}, {"rango": "Sensitivo", "orden": 3, "firmpro_desde": 200, "firmpro_hasta": 220, "durofel_desde": 73, "durofel_hasta": 75}, {"rango": "Firme", "orden": 4, "firmpro_desde": 220, "firmpro_hasta": 280, "durofel_desde": 75, "durofel_hasta": 85}, {"rango": "Muy firme", "orden": 5, "firmpro_desde": 280, "firmpro_hasta": null, "durofel_desde": 85, "durofel_hasta": null}], "clasificacion": [{"clase": "Mantao", "orden": 1, "variedades": "Santina, Kordia, Lapins, Regina, Pacific Red, Sweet Aryana", "firmeza_promedio": "≥ 250 gf/mm", "firmeza_min": 250, "dispersion_firmeza": "< 20% de frutos bajo 220 gf/mm", "brix_promedio": "> 18", "brix_min": 18, "dispersion_brix": "< 10% de frutos bajo 16 °Bx", "pudricion": "< 1%", "pudricion_max": 1, "machucones": "< 6%", "machucones_max": 6, "partiduras": "< 6%", "partiduras_max": 6, "exportable": "> 85%", "exportable_min": 85}, {"clase": "Frutea", "orden": 2, "variedades": "Royal Dawn, Sweetheart", "firmeza_promedio": "≥ 220 gf/mm", "firmeza_min": 220, "dispersion_firmeza": "< 40% de frutos bajo 200 gf/mm", "brix_promedio": "> 16", "brix_min": 16, "dispersion_brix": "< 10% de frutos bajo 14 °Bx", "pudricion": "< 3%", "pudricion_max": 3, "machucones": "< 10%", "machucones_max": 10, "partiduras": "< 10%", "partiduras_max": 10, "exportable": "> 75%", "exportable_min": 75}, {"clase": "Aries", "orden": 3, "variedades": "Nimba, Skeena, Bing", "firmeza_promedio": "< 220 gf/mm", "firmeza_min": null, "dispersion_firmeza": "100%", "brix_promedio": "< 16", "brix_min": null, "dispersion_brix": "—", "pudricion": "> 3%", "pudricion_max": null, "machucones": "> 10%", "machucones_max": null, "partiduras": "> 10%", "partiduras_max": null, "exportable": "< 75%", "exportable_min": null, "firmeza_max": 220, "brix_max": 16, "pudricion_min": 3, "machucones_min": 10, "partiduras_min": 10, "exportable_max": 75}]};
+window.dash = (function(){
+  const calcs = {}, subs = [];
+  const colors = ['var(--c1)','var(--c2)','var(--c3)','#a855f7','#e11d48','#0891b2','#ca8a04','#64748b'];
+  function data(id){
+    if (DATA[id]) return {status:'ok', data:DATA[id], columns:Object.keys(DATA[id][0]||{}), meta:[]};
+    if (calcs[id]) { const c = calcs[id]; return {status:'ok', data:c.fn.apply(null, c.inputs.map(i => data(i).data)), meta:[]}; }
+    return {status:'missing', data:[]};
+  }
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => subs.forEach(f => f()), 150); });
+  return { data, colors, calc:(id,o)=>{calcs[id]=o;}, onData:(fn)=>{subs.push(fn); fn();}, refresh:()=>{}, params:()=>({}), setParams:()=>{}, resetParams:()=>{}, setLink:()=>{} };
+})();
+</script>
+
+<div class="cz">
+  <header>
+    <h1 id="titulo">Parámetros de calidad cereza</h1>
+    <p class="lead">Elige una variedad para ver su tiempo de hidroenfriado y la clase a la que puede optar, y evalúa un lote con sus mediciones. El agua de hidroenfriado debe estar lo más cerca posible de 0 °C para bajar la temperatura de pulpa.</p>
+  </header>
+
+  <section id="ficha">
+    <h2>Ficha por variedad</h2>
+    <div class="bar"><select id="selVar" aria-label="Variedad"></select></div>
+    <div class="tiles">
+      <div class="tile"><span class="lbl">Hidroenfriado convencional</span><span class="big"><span id="tConv" class="dash-skeleton" data-source="hidroenfriado" data-field="convencional_min">—</span><span class="unit">min</span></span></div>
+      <div class="tile"><span class="lbl">1° día postlluvia</span><span class="big"><span id="tD1" class="dash-skeleton" data-source="hidroenfriado" data-field="dia1_postlluvia_min">—</span><span class="unit">min</span></span></div>
+      <div class="tile"><span class="lbl">2° día postlluvia</span><span class="big"><span id="tD2a" class="dash-skeleton" data-source="hidroenfriado" data-field="dia2_postlluvia_min_desde">—</span> a <span id="tD2b" class="dash-skeleton" data-source="hidroenfriado" data-field="dia2_postlluvia_min_hasta">—</span><span class="unit">min</span></span></div>
+      <div class="tile"><span class="lbl">3° día postlluvia</span><span id="tD3" class="txt dash-skeleton" data-source="hidroenfriado" data-field="dia3_postlluvia">—</span></div>
+      <div class="tile"><span class="lbl">Clase permitida</span><span class="big"><span id="tClase" class="dash-skeleton" data-source="variedad_clase" data-field="clase">—</span></span></div>
+    </div>
+  </section>
+
+  <section id="lote" class="card">
+    <h2>Evaluar un lote</h2>
+    <p class="note">Ingresa las mediciones promedio del lote. Se compara con los requisitos de Mantao, Frutea y Aries; si no alcanza Mantao ni Frutea queda como Aries. Las dispersiones de firmeza y Brix no se evalúan aquí.</p>
+    <div class="form">
+      <label>Firmeza (gf/mm, FirmPro)<input id="inFirm" type="number" inputmode="decimal" placeholder="ej. 245"></label>
+      <label>Brix promedio (°Bx)<input id="inBrix" type="number" inputmode="decimal" step="0.1"></label>
+      <label>Pudrición (%)<input id="inPud" type="number" inputmode="decimal" step="0.1"></label>
+      <label>Machucones (%)<input id="inMach" type="number" inputmode="decimal" step="0.1"></label>
+      <label>Partiduras (%)<input id="inPart" type="number" inputmode="decimal" step="0.1"></label>
+      <label>% exportable<input id="inExp" type="number" inputmode="decimal" step="0.1"></label>
+    </div>
+    <div class="result">
+      <div><div class="note" style="margin:0">Rango de firmeza</div><div class="big" id="rRango" data-source="firmeza" data-field="rango">—</div></div>
+      <div><div class="note" style="margin:0">Clase del lote</div><div class="big" id="rClase" data-source="clasificacion" data-field="clase">—</div></div>
+      <div id="rWarn" class="warn"></div>
+    </div>
+    <div class="scroll">
+      <table id="checkTbl">
+        <thead><tr><th>Criterio</th><th>Valor del lote</th><th id="hM">Mantao</th><th id="hF">Frutea</th><th id="hA">Aries</th></tr></thead>
+        <tbody id="checkBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="escala" class="card">
+    <h2>Escala de firmeza</h2>
+    <p class="note">Rangos FirmPro (gf/mm) y su equivalente Durofel. Las líneas marcan la firmeza promedio mínima de Mantao y Frutea; el punto, la firmeza del lote ingresado.</p>
+    <div id="chartFirm" class="chart dash-skeleton" data-source="firmeza clasificacion"><div class="tip" id="tipFirm"></div></div>
+  </section>
+
+  <div class="grid">
+    <section id="hidro" class="card">
+      <h2>Tiempos de hidroenfriado</h2>
+      <p class="note">Según la susceptibilidad a partidura de cada variedad, en minutos.</p>
+      <div class="scroll">
+        <table id="tblHidro" data-source="hidroenfriado" data-row-key="variedad">
+          <thead><tr>
+            <th data-field="variedad">Variedad</th>
+            <th class="num" data-field="convencional_min">Convencional</th>
+            <th class="num" data-field="dia1_postlluvia_min">1° día</th>
+            <th class="num" data-field="dia2_postlluvia_min_desde">2° día desde</th>
+            <th class="num" data-field="dia2_postlluvia_min_hasta">2° día hasta</th>
+            <th data-source="variedad_clase" data-field="clase">Clase</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin:var(--cds-gap-sm) 0 0">3° día postlluvia: si al 2° día la fruta no aumentó partiduras por agua, se vuelve al tiempo convencional.</p>
+    </section>
+  </div>
+
+  <section id="clases" class="card">
+    <h2>Clasificación por calidad</h2>
+    <p class="note">Requisitos de cada clase y variedades permitidas.</p>
+    <div class="scroll">
+      <table id="tblClases" data-source="clasificacion" data-row-key="clase">
+        <thead><tr>
+          <th data-field="clase">Clase</th><th data-field="variedades">Variedades</th>
+          <th data-field="firmeza_promedio">Firmeza prom.</th><th data-field="dispersion_firmeza">Dispersión firmeza</th>
+          <th data-field="brix_promedio">Brix prom.</th><th data-field="dispersion_brix">Dispersión Brix</th>
+          <th data-field="pudricion">Pudrición</th><th data-field="machucones">Machucones</th>
+          <th data-field="partiduras">Partiduras</th><th data-field="exportable">% exportable</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<script>
+dash.calc('variedad_clase', {
+  inputs: ['hidroenfriado', 'clasificacion'],
+  title: 'Clase por variedad',
+  description: 'Busca cada variedad de hidroenfriado en la lista de variedades permitidas de cada clase.',
+  fn: (hidroenfriado, clasificacion) => {
+    const norm = s => String(s).toLowerCase().replace(/[^a-z]/g, '');
+    return hidroenfriado.map(h => {
+      const c = clasificacion.find(c => String(c.variedades).split(',').some(v => norm(v) === norm(h.variedad)));
+      return { variedad: h.variedad, clase: c ? c.clase : 'Sin clase asignada' };
+    });
+  }
+});
+
+(function () {
+  const $ = id => document.getElementById(id);
+  const num = v => (v === null || v === undefined || v === '') ? null : Number(v);
+  const fmt = v => v === null || isNaN(v) ? '—' : String(+v).replace('.', ',');
+  const title = s => String(s).toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  let selVar = null;
+  const inputs = ['inFirm','inBrix','inPud','inMach','inPart','inExp'];
+
+  function setMark(el, src, field, whereCol, whereVal, text) {
+    el.setAttribute('data-source', src); el.setAttribute('data-field', field);
+    if (whereCol) el.setAttribute('data-where', whereCol + '=' + encodeURIComponent(whereVal)); else el.removeAttribute('data-where');
+    el.textContent = text;
+  }
+
+  function render() {
+    const H = dash.data('hidroenfriado'), F = dash.data('firmeza'), C = dash.data('clasificacion'), VC = dash.data('variedad_clase');
+    const hOk = H.status === 'ok', fOk = F.status === 'ok', cOk = C.status === 'ok', vOk = VC.status === 'ok';
+    const hRows = hOk ? H.data : [], fRows = fOk ? F.data.slice().sort((a,b)=>a.orden-b.orden) : [], cRows = cOk ? C.data.slice().sort((a,b)=>a.orden-b.orden) : [], vRows = vOk ? VC.data : [];
+
+    // selector
+    const sel = $('selVar');
+    if (hOk && sel.options.length !== hRows.length) {
+      sel.innerHTML = '';
+      hRows.forEach(r => { const o = document.createElement('option'); o.value = r.variedad; o.textContent = title(r.variedad); sel.appendChild(o); });
+      if (!selVar || !hRows.some(r => r.variedad === selVar)) selVar = hRows[0] && hRows[0].variedad;
+      sel.value = selVar;
+    }
+    const h = hRows.find(r => r.variedad === selVar);
+    const vc = vRows.find(r => r.variedad === selVar);
+    ['tConv','tD1','tD2a','tD2b','tD3'].forEach(id => $(id).classList.toggle('dash-skeleton', !hOk && H.status === 'loading'));
+    $('tClase').classList.toggle('dash-skeleton', !vOk && VC.status === 'loading');
+    if (h) {
+      setMark($('tConv'), 'hidroenfriado', 'convencional_min', 'variedad', h.variedad, fmt(h.convencional_min));
+      setMark($('tD1'), 'hidroenfriado', 'dia1_postlluvia_min', 'variedad', h.variedad, fmt(h.dia1_postlluvia_min));
+      setMark($('tD2a'), 'hidroenfriado', 'dia2_postlluvia_min_desde', 'variedad', h.variedad, fmt(h.dia2_postlluvia_min_desde));
+      setMark($('tD2b'), 'hidroenfriado', 'dia2_postlluvia_min_hasta', 'variedad', h.variedad, fmt(h.dia2_postlluvia_min_hasta));
+      setMark($('tD3'), 'hidroenfriado', 'dia3_postlluvia', 'variedad', h.variedad, h.dia3_postlluvia);
+    } else ['tConv','tD1','tD2a','tD2b','tD3'].forEach(id => $(id).textContent = '—');
+    if (vc) setMark($('tClase'), 'variedad_clase', 'clase', 'variedad', vc.variedad, vc.clase); else $('tClase').textContent = '—';
+
+    // lote
+    const v = {}; inputs.forEach(id => { const x = $(id).value; v[id] = x === '' ? null : Number(x); });
+    const rR = $('rRango'), rC = $('rClase'), warn = $('rWarn');
+    const rango = v.inFirm === null ? null : fRows.find(r => (num(r.firmpro_desde) === null || v.inFirm >= num(r.firmpro_desde)) && (num(r.firmpro_hasta) === null || v.inFirm < num(r.firmpro_hasta)));
+    if (rango) setMark(rR, 'firmeza', 'rango', 'rango', rango.rango, rango.rango); else { rR.removeAttribute('data-where'); rR.textContent = '—'; }
+
+    const crit = [
+      { k: 'inFirm', name: 'Firmeza promedio', txt: 'firmeza_promedio', th: 'firmeza_min', ok: (x, t) => x >= t, ath: 'firmeza_max', aok: (x, t) => x < t, u: ' gf/mm' },
+      { k: 'inBrix', name: 'Brix promedio', txt: 'brix_promedio', th: 'brix_min', ok: (x, t) => x > t, ath: 'brix_max', aok: (x, t) => x < t, u: ' °Bx' },
+      { k: 'inPud', name: 'Pudrición', txt: 'pudricion', th: 'pudricion_max', ok: (x, t) => x < t, ath: 'pudricion_min', aok: (x, t) => x > t, u: '%' },
+      { k: 'inMach', name: 'Machucones', txt: 'machucones', th: 'machucones_max', ok: (x, t) => x < t, ath: 'machucones_min', aok: (x, t) => x > t, u: '%' },
+      { k: 'inPart', name: 'Partiduras', txt: 'partiduras', th: 'partiduras_max', ok: (x, t) => x < t, ath: 'partiduras_min', aok: (x, t) => x > t, u: '%' },
+      { k: 'inExp', name: '% exportable', txt: 'exportable', th: 'exportable_min', ok: (x, t) => x > t, ath: 'exportable_max', aok: (x, t) => x < t, u: '%' }
+    ];
+    const graded = cRows.filter(c => num(c.firmeza_min) !== null);
+    const all = inputs.every(id => v[id] !== null && !isNaN(v[id]));
+    const tb = $('checkBody'); tb.innerHTML = '';
+    const mC = cRows.find(c => c.clase === 'Mantao') || graded[0], fC = cRows.find(c => c.clase === 'Frutea') || graded[1];
+    const aC = cRows.find(c => c.clase === 'Aries') || cRows[cRows.length - 1];
+    const cols = [mC, fC, aC].filter(Boolean);
+    $('hM').textContent = mC ? mC.clase : ''; $('hF').textContent = fC ? fC.clase : ''; $('hA').textContent = aC ? aC.clase : '';
+    crit.forEach(cr => {
+      const tr = document.createElement('tr');
+      const td0 = document.createElement('td'); td0.textContent = cr.name; tr.appendChild(td0);
+      const td1 = document.createElement('td'); td1.className = 'num'; td1.textContent = v[cr.k] === null ? '—' : fmt(v[cr.k]) + cr.u; tr.appendChild(td1);
+      cols.forEach(c => {
+        const td = document.createElement('td');
+        const s = document.createElement('span'); setMark(s, 'clasificacion', cr.txt, 'clase', c.clase, c[cr.txt]); td.appendChild(s);
+        if (v[cr.k] !== null) { const i = document.createElement('span'); const isA = c === aC; const pass = isA ? cr.aok(v[cr.k], num(c[cr.ath])) : cr.ok(v[cr.k], num(c[cr.th])); i.className = pass ? 'ok' : 'bad'; i.textContent = pass ? '  ✓' : '  ✗'; td.appendChild(i); }
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    warn.textContent = '';
+    if (cOk && all) {
+      const hit = graded.find(c => crit.every(cr => cr.ok(v[cr.k], num(c[cr.th])))) || cRows[cRows.length - 1];
+      setMark(rC, 'clasificacion', 'clase', 'clase', hit.clase, hit.clase);
+      if (vc && vc.clase !== hit.clase) warn.textContent = title(selVar) + ' figura como variedad de ' + vc.clase + ', no de ' + hit.clase + '.';
+    } else { rC.removeAttribute('data-where'); rC.textContent = '—'; if (cOk && !all) warn.textContent = 'Completa las seis mediciones para clasificar el lote.'; }
+
+    drawChart(fRows, cRows, fOk && cOk, F.status, v.inFirm);
+    drawTables(hRows, vRows, cRows, hOk, cOk);
+  }
+
+  function drawChart(fRows, cRows, ok, status, firm) {
+    const box = $('chartFirm'); const tip = $('tipFirm');
+    box.querySelectorAll('svg,.fail').forEach(n => n.remove());
+    box.classList.toggle('dash-skeleton', !ok && status === 'loading');
+    if (!ok) { if (status === 'error') { const d = document.createElement('div'); d.className = 'fail'; d.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:.5rem;min-height:9rem;color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)'; d.innerHTML = '<span style="width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)"></span>Failed to load'; box.appendChild(d); } return; }
+    const W = Math.max(280, box.clientWidth), m = { l: 8, r: 8 }, H = 136;
+    const lo = 150, hi = 320;
+    const x = d3.scaleLinear([lo, hi], [m.l, W - m.r]).clamp(true);
+    const colors = ['var(--color-bad)', 'var(--color-warn)', dash.colors[2], dash.colors[1], dash.colors[0]];
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('font-family', 'var(--font-anthropic-sans)');
+    const y0 = 34, bh = 26;
+    const g = svg.append('g');
+    fRows.forEach((r, i) => {
+      const a = num(r.firmpro_desde) ?? lo, b = num(r.firmpro_hasta) ?? hi;
+      const rect = g.append('rect').attr('x', x(a) + 1).attr('y', y0).attr('width', Math.max(0, x(b) - x(a) - 2)).attr('height', bh).attr('rx', 4).attr('fill', colors[i] || dash.colors[i]).attr('opacity', .85);
+      const t = g.append('text').attr('x', (x(a) + x(b)) / 2).attr('y', y0 - 8).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--color-fg)').text(r.rango);
+      if (t.node().getComputedTextLength() > x(b) - x(a) - 4) t.attr('font-size', 9);
+      if (t.node().getComputedTextLength() > x(b) - x(a) - 2) t.remove();
+      rect.on('mousemove', (e) => {
+        const fp = (num(r.firmpro_desde) === null ? '< ' + r.firmpro_hasta : num(r.firmpro_hasta) === null ? '> ' + r.firmpro_desde : r.firmpro_desde + ' – ' + r.firmpro_hasta) + ' gf/mm';
+        const du = (num(r.durofel_desde) === null ? '< ' + r.durofel_hasta : num(r.durofel_hasta) === null ? '> ' + r.durofel_desde : r.durofel_desde + ' – ' + r.durofel_hasta) + ' Df';
+        tip.innerHTML = ''; const s = document.createElement('div'); s.className = 's'; s.textContent = r.rango; tip.appendChild(s);
+        const l1 = document.createElement('div'); l1.textContent = 'FirmPro ' + fp; tip.appendChild(l1);
+        const l2 = document.createElement('div'); l2.textContent = 'Durofel ' + du; tip.appendChild(l2);
+        tip.style.display = 'block';
+        const [px] = d3.pointer(e, box); const tw = tip.offsetWidth;
+        tip.style.left = Math.min(Math.max(0, px - tw / 2), box.clientWidth - tw) + 'px'; tip.style.top = (y0 + bh + 6) + 'px';
+      }).on('mouseleave', () => tip.style.display = 'none');
+      // boundary ticks
+      if (num(r.firmpro_desde) !== null) {
+        g.append('text').attr('x', x(a)).attr('y', y0 + bh + 16).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(r.firmpro_desde);
+        g.append('text').attr('x', x(a)).attr('y', y0 + bh + 30).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg-muted)').text(r.durofel_desde + ' Df');
+      }
+    });
+    cRows.filter(c => num(c.firmeza_min) !== null).forEach((c, i) => {
+      const xv = x(num(c.firmeza_min));
+      svg.append('line').attr('x1', xv).attr('x2', xv).attr('y1', y0 - 2).attr('y2', y0 + bh + 2).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-width', 2).attr('stroke-dasharray', '3 2');
+      svg.append('text').attr('x', xv).attr('y', H - 6).attr('text-anchor', 'middle').attr('font-size', 10).attr('fill', 'var(--color-fg)').text(c.clase + ' ≥ ' + c.firmeza_min);
+    });
+    if (firm !== null && !isNaN(firm)) {
+      svg.append('circle').attr('cx', x(firm)).attr('cy', y0 + bh / 2).attr('r', 6).attr('fill', 'var(--color-bg)').attr('stroke', 'var(--color-fg)').attr('stroke-width', 2.5).style('pointer-events', 'none');
+    }
+  }
+
+  function drawTables(hRows, vRows, cRows, hOk, cOk) {
+    const tb = document.querySelector('#tblHidro tbody'); tb.innerHTML = '';
+    hRows.forEach(r => {
+      const tr = document.createElement('tr'); tr.setAttribute('data-key', r.variedad);
+      if (r.variedad === selVar) tr.className = 'sel';
+      tr.style.cursor = 'pointer';
+      tr.addEventListener('click', () => { selVar = r.variedad; $('selVar').value = selVar; render(); });
+      const vc = vRows.find(x => x.variedad === r.variedad);
+      [[title(r.variedad), ''], [fmt(r.convencional_min), 'num'], [fmt(r.dia1_postlluvia_min), 'num'], [fmt(r.dia2_postlluvia_min_desde), 'num'], [fmt(r.dia2_postlluvia_min_hasta), 'num'], [vc ? vc.clase : '—', '']]
+        .forEach(([t, c]) => { const td = document.createElement('td'); td.textContent = t; if (c) td.className = c; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    const tc = document.querySelector('#tblClases tbody'); tc.innerHTML = '';
+    const f = ['clase','variedades','firmeza_promedio','dispersion_firmeza','brix_promedio','dispersion_brix','pudricion','machucones','partiduras','exportable'];
+    cRows.forEach(r => {
+      const tr = document.createElement('tr');
+      f.forEach(k => { const td = document.createElement('td'); td.textContent = r[k]; if (k === 'clase') td.style.fontWeight = 'var(--cds-font-weight-medium)'; tr.appendChild(td); });
+      tc.appendChild(tr);
+    });
+  }
+
+  $('selVar').addEventListener('change', e => { selVar = e.target.value; render(); });
+  inputs.forEach(id => $(id).addEventListener('input', render));
+  dash.onData(render);
+})();
+</script>
+
+</div>
+</body>
+</html>
