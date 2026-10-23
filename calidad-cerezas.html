@@ -210,7 +210,7 @@ td.hit{background:var(--brand)!important;color:#fff;font-weight:600}
       <li>Sweet Lorenz tiene tiempo de hidroenfriado, pero no está en ninguna clase.</li>
       <li>En rotulación, las columnas D y DD tienen los mismos códigos.</li>
       <li>Dispersión: se interpretó “&lt; 20% &lt; 220” como menos del 20% de los frutos bajo 220 gf/mm (y lo mismo para Frutea y para Brix). En Aries, 100% se tomó como sin exigencia de dispersión.</li>
-      <li>La clase del lote se limita a la clase permitida de la variedad (por ejemplo, Royal Dawn llega como máximo a Frutea). Confirmar si es así.</li>
+      <li>La caja del lote se decide solo por las mediciones; la variedad no limita la caja.</li>
     </ul>
   </details>
 </div>
@@ -268,12 +268,14 @@ function renderFicha(){
 
 function parseList(t){
   const out=[];
-  String(t||"").split(/[\s;\t]+/).forEach(tok=>{
-    if(!tok) return;
-    const commas=(tok.match(/,/g)||[]).length;
-    const parts = commas>1 ? tok.split(",") : [tok.replace(",",".")];
-    parts.forEach(x=>{ const n=parseFloat(x); if(!isNaN(n)) out.push(n); });
-  });
+  const toNum = tok => { const c=(tok.match(/,/g)||[]).length; return c>1 ? tok.split(",").map(parseFloat) : [parseFloat(tok.replace(",","."))]; };
+  const lines = String(t||"").split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length>1){
+    // una fila por fruto: se toma el último número de cada fila (ignora N° de fruto u otras columnas)
+    lines.forEach(l=>{ const nums=l.split(/[\t;]+|\s+/).flatMap(x=>x?toNum(x):[]).filter(n=>!isNaN(n)); if(nums.length) out.push(nums[nums.length-1]); });
+  } else if(lines.length===1){
+    lines[0].split(/[\s;\t]+/).forEach(x=>{ if(x) toNum(x).forEach(n=>{ if(!isNaN(n)) out.push(n); }); });
+  }
   return out;
 }
 const pct = (a,f) => a.length ? a.filter(f).length/a.length*100 : null;
@@ -326,15 +328,12 @@ function renderLote(){
   let res=null, warn="";
   if(filled.length){
     res = pass(CLASES[0]) ? "Mantao" : pass(CLASES[1]) ? "Frutea" : "Aries";
-    const cv = claseOf(selVar);
-    const order = ["Mantao","Frutea","Aries"];
-    if(cv && order.indexOf(cv.k) > order.indexOf(res)){
-      warn = `Por mediciones alcanza ${res}, pero ${selVar} está permitida solo en ${cv.k}.`;
-      res = cv.k;
-    }
-    const miss = CRIT.filter(([k])=>m[k]===null).map(([,l])=>l.toLowerCase());
+    const fails = c => CRIT.filter(([k])=>m[k]!==null && m[k]!==undefined && !c.test[k](m[k])).map(([,l])=>l.toLowerCase());
+    if(res!=="Mantao") warn = `No alcanza Mantao por: ${fails(CLASES[0]).join(", ")}.`;
+    if(res==="Aries") warn += ` No alcanza Frutea por: ${fails(CLASES[1]).join(", ")}.`;
+    if(m.exp!==null && m.exp<=1) warn += " Ojo: el % exportable se escribe como porcentaje (ej. 88), no como decimal.";
+    const miss = CRIT.filter(([k])=>m[k]===null || m[k]===undefined).map(([,l])=>l.toLowerCase());
     if(miss.length) warn += (warn?" ":"") + `Sin dato: ${miss.join(", ")}; el resultado puede cambiar al completarlos.`;
-    if(!cv) warn += (warn?" ":"") + `${selVar} no tiene clase asignada; se evaluó solo por mediciones.`;
   }
   $("rClase").textContent = res||"—";
   $("rClase").style.color = res?COLC[res]:"";
