@@ -58,6 +58,17 @@ input{width:100%;font-variant-numeric:tabular-nums}
 .form label{display:flex;flex-direction:column;gap:.25rem;font-size:.82rem;color:var(--muted)}
 .form label.key{color:var(--brand);font-weight:600}
 .form label.key input{border-color:var(--brand);border-width:2px}
+.muestra{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));gap:1rem;margin:0 0 1rem;padding:1rem;border:1px dashed var(--line);border-radius:var(--radius);background:var(--bg)}
+.muestra h3{grid-column:1/-1;margin:0;font-size:.95rem;font-weight:600}
+.muestra .hint{grid-column:1/-1;margin:-.6rem 0 0;color:var(--muted);font-size:.82rem}
+.muestra label{display:flex;flex-direction:column;gap:.25rem;font-size:.82rem;color:var(--muted)}
+textarea{font:inherit;font-size:.9rem;font-variant-numeric:tabular-nums;width:100%;min-height:7.5rem;resize:vertical;padding:.5rem .6rem;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);color:var(--fg)}
+.stat{font-size:.85rem;margin-top:.45rem;display:flex;flex-wrap:wrap;gap:.3rem .9rem}
+.stat b{font-family:var(--serif);font-weight:400;font-size:1.15rem}
+.stat .bad b{color:var(--bad)} .stat .ok b{color:var(--ok)}
+.hist svg{display:block;width:100%;height:auto;margin-top:.4rem}
+.hist text{font-family:var(--sans);font-size:10px;fill:var(--muted)}
+input[readonly]{background:var(--soft);color:var(--muted)}
 .result{display:flex;flex-wrap:wrap;gap:1.5rem 2.5rem;align-items:center;margin-bottom:1rem}
 .result .box{width:92px;height:auto;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .rclase{display:flex;gap:.9rem;align-items:center}
@@ -93,7 +104,7 @@ td.hit{background:var(--brand)!important;color:#fff;font-weight:600}
   <header>
     <img class="logo" src="data:image/png;base64,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" alt="Frutea">
     <h1>Parámetros de calidad cereza</h1>
-    <p class="lead">Elige una variedad para ver su tiempo de hidroenfriado y la clase a la que puede optar, y evalúa un lote con sus mediciones para saber a qué caja va. El agua de hidroenfriado debe estar lo más cerca posible de 0 °C para bajar la temperatura de pulpa.</p>
+    <p class="lead">Elige una variedad para ver su tiempo de hidroenfriado, y evalúa un lote con sus mediciones para saber a qué caja va. El agua de hidroenfriado debe estar lo más cerca posible de 0 °C para bajar la temperatura de pulpa.</p>
   </header>
 
   <section>
@@ -104,13 +115,12 @@ td.hit{background:var(--brand)!important;color:#fff;font-weight:600}
       <div class="tile"><span class="lbl">1° día postlluvia</span><span class="big"><span id="tD1">—</span><span class="unit">min</span></span></div>
       <div class="tile"><span class="lbl">2° día postlluvia</span><span class="big">1 a 1,5<span class="unit">min</span></span></div>
       <div class="tile"><span class="lbl">3° día postlluvia</span><span class="txt">Si al 2° día la fruta no aumentó partiduras por agua, vuelve al tiempo convencional</span></div>
-      <div class="tile"><span class="lbl">Clase permitida</span><span class="big" id="tClase">—</span></div>
     </div>
   </section>
 
   <section class="card">
     <h2>Evaluar un lote</h2>
-    <p class="note">Ingresa las mediciones promedio del lote. Se compara con los requisitos de Mantao, Frutea y Aries; si no alcanza Mantao ni Frutea queda como Aries. Con solo la firmeza ya tienes una respuesta. Las dispersiones de firmeza y Brix no se evalúan aquí.</p>
+    <p class="note">Ingresa las mediciones promedio del lote. Se compara con los requisitos de Mantao, Frutea y Aries; si no alcanza Mantao ni Frutea queda como Aries. Con solo la firmeza ya tienes una respuesta. Para evaluar la dispersión, pega las mediciones de cada fruto de la muestra.</p>
     <div class="form">
       <label class="key">Firmeza (gf/mm, FirmPro)<input id="inFirm" type="number" inputmode="decimal" placeholder="ej. 245"></label>
       <label>Brix promedio (°Bx)<input id="inBrix" type="number" inputmode="decimal" step="0.1"></label>
@@ -118,6 +128,20 @@ td.hit{background:var(--brand)!important;color:#fff;font-weight:600}
       <label>Machucones (%)<input id="inMach" type="number" inputmode="decimal" step="0.1"></label>
       <label>Partiduras (%)<input id="inPart" type="number" inputmode="decimal" step="0.1"></label>
       <label>% exportable<input id="inExp" type="number" inputmode="decimal" step="0.1"></label>
+    </div>
+    <div class="muestra">
+      <h3>Mediciones por fruto (para dispersión)</h3>
+      <p class="hint">Copia la columna desde Excel o desde el equipo y pégala aquí, un valor por línea. Al pegar, el promedio se calcula solo.</p>
+      <div>
+        <label>Firmeza de cada fruto (gf/mm)<textarea id="lsFirm" placeholder="245&#10;262&#10;218&#10;…"></textarea></label>
+        <div class="stat" id="stFirm"></div>
+        <div class="hist" id="hFirm"></div>
+      </div>
+      <div>
+        <label>Brix de cada fruto (°Bx)<textarea id="lsBrix" placeholder="18,2&#10;17,5&#10;19,1&#10;…"></textarea></label>
+        <div class="stat" id="stBrix"></div>
+        <div class="hist" id="hBrix"></div>
+      </div>
     </div>
     <div class="result">
       <div><div class="note" style="margin:0">Rango de firmeza</div><div class="big" id="rRango">—</div></div>
@@ -143,7 +167,7 @@ td.hit{background:var(--brand)!important;color:#fff;font-weight:600}
       <h2>Tiempos de hidroenfriado</h2>
       <p class="note">Según la susceptibilidad a partidura de cada variedad, en minutos.</p>
       <div class="scroll"><table>
-        <thead><tr><th>Variedad</th><th class="num">Convencional</th><th class="num">1° día</th><th class="num">2° día</th><th>Clase</th></tr></thead>
+        <thead><tr><th>Variedad</th><th class="num">Convencional</th><th class="num">1° día</th><th class="num">2° día</th></tr></thead>
         <tbody id="tblHidro"></tbody>
       </table></div>
       <p class="note" style="margin:.5rem 0 0">3° día postlluvia: si al 2° día la fruta no aumentó partiduras por agua, se vuelve al tiempo convencional.</p>
@@ -185,6 +209,7 @@ td.hit{background:var(--brand)!important;color:#fff;font-weight:600}
       <li>Sweet Heart está en Frutea, pero no aparece en la tabla de hidroenfriado.</li>
       <li>Sweet Lorenz tiene tiempo de hidroenfriado, pero no está en ninguna clase.</li>
       <li>En rotulación, las columnas D y DD tienen los mismos códigos.</li>
+      <li>Dispersión: se interpretó “&lt; 20% &lt; 220” como menos del 20% de los frutos bajo 220 gf/mm (y lo mismo para Frutea y para Brix). En Aries, 100% se tomó como sin exigencia de dispersión.</li>
       <li>La clase del lote se limita a la clase permitida de la variedad (por ejemplo, Royal Dawn llega como máximo a Frutea). Confirmar si es así.</li>
     </ul>
   </details>
@@ -206,16 +231,16 @@ const FIRM = [
 const CLASES = [
   {k:"Mantao", vars:["Santina","Kordia","Lapins","Regina","Pacific Red","Sweet Aryana"],
    t:["≥ 250 gf/mm","< 20% de frutos bajo 220 gf/mm","> 18","< 10% de frutos bajo 16 °Bx","< 1%","< 6%","< 6%","> 85%"],
-   test:{firm:v=>v>=250,brix:v=>v>18,pud:v=>v<1,mach:v=>v<6,part:v=>v<6,exp:v=>v>85}},
+   test:{dispF:s=>s.b220<20,dispB:s=>s.b16<10,firm:v=>v>=250,brix:v=>v>18,pud:v=>v<1,mach:v=>v<6,part:v=>v<6,exp:v=>v>85}},
   {k:"Frutea", vars:["Royal Dawn","Sweet Heart"],
    t:["≥ 220 gf/mm","< 40% de frutos bajo 200 gf/mm","> 16","< 10% de frutos bajo 14 °Bx","< 3%","< 10%","< 10%","> 75%"],
-   test:{firm:v=>v>=220,brix:v=>v>16,pud:v=>v<3,mach:v=>v<10,part:v=>v<10,exp:v=>v>75}},
+   test:{dispF:s=>s.b200<40,dispB:s=>s.b14<10,firm:v=>v>=220,brix:v=>v>16,pud:v=>v<3,mach:v=>v<10,part:v=>v<10,exp:v=>v>75}},
   {k:"Aries", vars:["Nimba","Skeena","Bing"],
    t:["< 220 gf/mm","100%","< 16","—","> 3%","> 10%","> 10%","< 75%"],
-   test:{firm:v=>v<220,brix:v=>v<16,pud:v=>v>3,mach:v=>v>10,part:v=>v>10,exp:v=>v<75}}
+   test:{dispF:s=>true,dispB:s=>true,firm:v=>v<220,brix:v=>v<16,pud:v=>v>3,mach:v=>v>10,part:v=>v>10,exp:v=>v<75}}
 ];
 const CRIT = [
-  ["firm","Firmeza promedio","inFirm",0],["brix","Brix promedio","inBrix",2],["pud","Pudrición","inPud",4],
+  ["firm","Firmeza promedio","inFirm",0],["dispF","Dispersión firmeza",null,1],["brix","Brix promedio","inBrix",2],["dispB","Dispersión Brix",null,3],["pud","Pudrición","inPud",4],
   ["mach","Machucones","inMach",5],["part","Partiduras","inPart",6],["exp","% exportable","inExp",7]
 ];
 const ROT = [["22 – 23,9",22,24,"L"],["24 – 25,9",24,26,"XL"],["26 – 27,9",26,28,"J"],["28 – 29,9",28,30,"2J"],["30 – 31,9",30,32,"3J"],["32 – 33,9",32,34,"4J"],["> 34",34,999,"5J"]];
@@ -239,14 +264,62 @@ function renderFicha(){
   const h = HIDRO.find(x=>x.v===selVar), c = claseOf(selVar);
   $("tConv").textContent = h?fmt(h.conv):"—";
   $("tD1").textContent = h?fmt(h.d1):"—";
-  $("tClase").textContent = c?c.k:"Sin clase asignada";
-  $("tClase").style.color = c?COLC[c.k]:"var(--muted)";
 }
 
+function parseList(t){
+  const out=[];
+  String(t||"").split(/[\s;\t]+/).forEach(tok=>{
+    if(!tok) return;
+    const commas=(tok.match(/,/g)||[]).length;
+    const parts = commas>1 ? tok.split(",") : [tok.replace(",",".")];
+    parts.forEach(x=>{ const n=parseFloat(x); if(!isNaN(n)) out.push(n); });
+  });
+  return out;
+}
+const pct = (a,f) => a.length ? a.filter(f).length/a.length*100 : null;
+const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
+const p1 = v => fmt(Math.round(v*10)/10);
+function hist(a, lo, hi, step, lines){
+  if(!a.length) return "";
+  const W=320,H=70,nb=Math.ceil((hi-lo)/step),bins=new Array(nb).fill(0);
+  a.forEach(v=>{ let i=Math.floor((Math.max(lo,Math.min(hi-1e-9,v))-lo)/step); bins[i]++; });
+  const mx=Math.max(...bins), bw=W/nb, X=v=>(Math.max(lo,Math.min(hi,v))-lo)/(hi-lo)*W;
+  let s=`<svg viewBox="0 -12 ${W} ${H+26}" role="img" aria-label="Distribución de la muestra">`;
+  bins.forEach((b,i)=>{ const h=b/mx*H, x0=lo+i*step; const col = lines.find(l=>x0+step<=l[0]) ? "var(--bad)" : "var(--muted)"; s+=`<rect x="${i*bw+1}" y="${H-h}" width="${bw-2}" height="${h}" fill="${col}" opacity=".55"/>`; });
+  lines.forEach(([v,c,t])=>{ const x=X(v); s+=`<line x1="${x}" x2="${x}" y1="-2" y2="${H}" stroke="${c}" stroke-width="2" stroke-dasharray="4 2"/><text x="${x}" y="-4" text-anchor="middle" style="fill:${c};font-weight:700">${t}</text>`; });
+  s+=`<line x1="0" x2="${W}" y1="${H}" y2="${H}" stroke="var(--line)"/><text x="0" y="${H+12}">${lo}</text><text x="${W}" y="${H+12}" text-anchor="end">${hi}</text>`;
+  return s+"</svg>";
+}
+function renderMuestra(m){
+  const F=parseList($("lsFirm").value), B=parseList($("lsBrix").value);
+  const sF=$("stFirm"), sB=$("stBrix");
+  if(F.length){
+    const st={n:F.length,avg:mean(F),b220:pct(F,v=>v<220),b200:pct(F,v=>v<200)};
+    m.dispF=st; m.firm=Math.round(st.avg*10)/10;
+    $("inFirm").value=m.firm; $("inFirm").readOnly=true;
+    sF.innerHTML=`<span><b>${st.n}</b> frutos</span><span>Promedio <b>${p1(st.avg)}</b></span><span class="${st.b220<20?"ok":"bad"}">Bajo 220: <b>${p1(st.b220)}%</b></span><span class="${st.b200<40?"ok":"bad"}">Bajo 200: <b>${p1(st.b200)}%</b></span><span>Mín–máx <b>${fmt(Math.min(...F))}–${fmt(Math.max(...F))}</b></span>`;
+    $("hFirm").innerHTML=hist(F,140,340,10,[[200,"var(--frutea)","200"],[220,"var(--mantao)","220"]]);
+  } else {
+    m.dispF=null; if($("inFirm").readOnly){ $("inFirm").readOnly=false; $("inFirm").value=""; m.firm=null; }
+    sF.innerHTML=""; $("hFirm").innerHTML="";
+  }
+  if(B.length){
+    const st={n:B.length,avg:mean(B),b16:pct(B,v=>v<16),b14:pct(B,v=>v<14)};
+    m.dispB=st; m.brix=Math.round(st.avg*10)/10;
+    $("inBrix").value=m.brix; $("inBrix").readOnly=true;
+    sB.innerHTML=`<span><b>${st.n}</b> frutos</span><span>Promedio <b>${p1(st.avg)}</b></span><span class="${st.b16<10?"ok":"bad"}">Bajo 16: <b>${p1(st.b16)}%</b></span><span class="${st.b14<10?"ok":"bad"}">Bajo 14: <b>${p1(st.b14)}%</b></span><span>Mín–máx <b>${fmt(Math.min(...B))}–${fmt(Math.max(...B))}</b></span>`;
+    $("hBrix").innerHTML=hist(B,10,26,1,[[14,"var(--frutea)","14"],[16,"var(--mantao)","16"]]);
+  } else {
+    m.dispB=null; if($("inBrix").readOnly){ $("inBrix").readOnly=false; $("inBrix").value=""; m.brix=null; }
+    sB.innerHTML=""; $("hBrix").innerHTML="";
+  }
+}
+const showV = (k,v) => v===null||v===undefined ? "—" : k==="dispF" ? `${p1(v.b220)}% <220 · ${p1(v.b200)}% <200` : k==="dispB" ? `${p1(v.b16)}% <16 · ${p1(v.b14)}% <14` : fmt(v);
 function renderLote(){
-  const m = {}; CRIT.forEach(([k,,id])=>m[k]=val(id));
+  const m = {}; CRIT.forEach(([k,,id])=>m[k]=id?val(id):null);
+  renderMuestra(m);
   const filled = CRIT.filter(([k])=>m[k]!==null);
-  const pass = c => CRIT.every(([k])=>m[k]===null || c.test[k](m[k]));
+  const pass = c => CRIT.every(([k])=>m[k]===null || m[k]===undefined || c.test[k](m[k]));
   const rg = rangoOf(m.firm);
   $("rRango").textContent = rg?rg.r:"—";
   $("rRango").style.color = rg?rg.c:"";
@@ -271,12 +344,12 @@ function renderLote(){
   $("checkBody").innerHTML = CRIT.map(([k,l,,ti])=>{
     const v=m[k];
     const cells = CLASES.map(c=>{
-      if(c.k==="Aries" && c.t[ti]==="—") return `<td class="na">—</td>`;
+      if(c.k==="Aries" && (c.t[ti]==="—" || k==="dispF")) return `<td class="na">${c.t[ti]}</td>`;
       if(v===null) return `<td class="na">${c.t[ti]}</td>`;
       const ok = c.test[k](v);
       return `<td class="${ok?"ok":"bad"}">${ok?"✓":"✗"} ${c.t[ti]}</td>`;
     }).join("");
-    return `<tr><td>${l}</td><td class="num"><b>${fmt(v)}</b></td>${cells}</tr>`;
+    return `<tr><td>${l}</td><td class="num"><b>${showV(k,v)}</b></td>${cells}</tr>`;
   }).join("");
   drawChart(m.firm);
 }
@@ -311,8 +384,7 @@ function drawChart(f){
 function renderHidro(){
   $("tblHidro").innerHTML = HIDRO.map(h=>{
     const c=claseOf(h.v);
-    return `<tr class="${h.v===selVar?"sel":""}" data-v="${h.v}" style="cursor:pointer"><td>${h.v}</td><td class="num">${fmt(h.conv)}</td><td class="num">${fmt(h.d1)}</td><td class="num">1 a 1,5</td>
-      <td>${c?`<span class="dot" style="background:${COLC[c.k]}"></span>${c.k}`:`<span class="na">Sin clase</span>`}</td></tr>`;
+    return `<tr class="${h.v===selVar?"sel":""}" data-v="${h.v}" style="cursor:pointer"><td>${h.v}</td><td class="num">${fmt(h.conv)}</td><td class="num">${fmt(h.d1)}</td><td class="num">1 a 1,5</td></tr>`;
   }).join("");
   $("tblHidro").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>{ selVar=tr.dataset.v; $("selVar").value=selVar; renderAll(); });
 }
@@ -334,7 +406,8 @@ function renderRot(){
 
 function renderAll(){ renderFicha(); renderLote(); renderHidro(); renderClases(); renderRot(); }
 $("selVar").addEventListener("change",e=>{ selVar=e.target.value; renderAll(); });
-CRIT.forEach(([,,id])=>$(id).addEventListener("input",renderLote));
+CRIT.forEach(([,,id])=>id&&$(id).addEventListener("input",renderLote));
+["lsFirm","lsBrix"].forEach(id=>$(id).addEventListener("input",renderLote));
 $("inMM").addEventListener("input",renderRot);
 renderAll();
 </script>
